@@ -2,12 +2,12 @@
 # as scripts/findings.py writes them (energyml-cli 0.1.0, 14/10/2026): the uuid of each wrong
 # object and what is wrong with it, then the totals line. Lines starting with '#' are
 # ignored by .github/workflows/check.yml. The E-nn of docs/errors.md say which is which.
-05c1ae7f-8540-59fe-8782-adbdb34cc2bc trg/wellbore-interpretation-set-holds-wellbores error
-0e10f568-51d6-57a2-a94c-6321fd079d52 house/time-series-asset-resolves warning
-1e82b7d6-3e76-5253-bc7c-8bb28c09bceb trg/contact-element-is-geological error
+02a86a39-fc66-517c-8ebf-67372b7949b9 trg/contact-element-is-geological error
+46bb0e7f-19fc-559f-89fe-fdebb08eb099 trg/wellbore-interpretation-set-holds-wellbores error
 53d539c7-5a0e-565c-bdd9-a62d4a1357a4 trg/one-definitive-trajectory-per-wellbore error
 777cac2d-3643-5e6b-be56-3e6c59d14b54 kind property
 8810b179-1206-540b-9ce1-e3c48086d09f house/discrete-value-in-lookup error
+ca939e59-9022-581a-9950-110823b6701c house/time-series-asset-resolves warning
 ecac25c3-d605-552a-9916-b9a9af14fb40 trg/homogeneous-collection error
 ed274d3b-cdcf-5a9a-8b82-b3602ba0bca6 trg/is-listric-iff-normal error
 eda0db5a-7e05-5e05-adf9-3468d8d156ec kind force per length

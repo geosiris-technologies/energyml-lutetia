@@ -1,0 +1,150 @@
+{
+  "kind": "osdu:wks:master-data--ColumnBasedTableTemplate:1.0.1",
+  "data": {
+    "Name": "Lutetia - BSS intervals and stages",
+    "Description": "passes-etages.csv: one row per interval (validated GDM log) or per level of an InfoTerre record sheet. See README.md. Columns left undeclared on purpose: note, relu.",
+    "KeyColumns": [
+      {
+        "ColumnName": "bss",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:348c9a4d-e3e4-4beb-8456-f07a46660de1:",
+          "Name": "well name"
+        }
+      },
+      {
+        "ColumnName": "toit_m",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:cb1166d9-3874-4267-abea-1cd97e4bf448:",
+          "Name": "top depth"
+        },
+        "UnitOfMeasureID": "namespace:reference-data--UnitOfMeasure:m:"
+      }
+    ],
+    "Columns": [
+      {
+        "ColumnName": "longitude",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:620cec71-5ce3-4ea5-9120-833756b427d7:",
+          "Name": "x coordinate"
+        }
+      },
+      {
+        "ColumnName": "latitude",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:cfcfdb04-02c1-4262-b66b-459b0aab3e8e:",
+          "Name": "y coordinate"
+        }
+      },
+      {
+        "ColumnName": "epsg",
+        "ValueType": "integer",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:d48ef4e7-f82e-4e91-bda2-685146223a85:",
+          "Name": "projection code"
+        }
+      },
+      {
+        "ColumnName": "sol_m",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:8508cef4-0ade-454a-9ea4-e00d5905e677:",
+          "Name": "elevation"
+        },
+        "UnitOfMeasureID": "namespace:reference-data--UnitOfMeasure:m:"
+      },
+      {
+        "ColumnName": "mur_m",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:c48c65d4-9680-4d10-903c-a1b2e30f66b5:",
+          "Name": "measured depth"
+        },
+        "UnitOfMeasureID": "namespace:reference-data--UnitOfMeasure:m:"
+      },
+      {
+        "ColumnName": "source_passe",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:b186c384-a744-447b-bd5b-3359d2ffd4b4:",
+          "Name": "source"
+        }
+      },
+      {
+        "ColumnName": "id_passe_wfs",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:311dcaba-6512-4144-aa7c-79a9de19b4ab:",
+          "Name": "identifier"
+        }
+      },
+      {
+        "ColumnName": "code_glu",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:5f78f66a-ed1b-4827-a868-beb989febb31:",
+          "Name": "code"
+        }
+      },
+      {
+        "ColumnName": "formation",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:48a02f88-8cfe-44e5-acb3-45038443d8f7:",
+          "Name": "formation name"
+        }
+      },
+      {
+        "ColumnName": "etage",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:0eb70eac-c3d2-4448-b617-10260c4abee3:",
+          "Name": "name"
+        }
+      },
+      {
+        "ColumnName": "source_etage",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:b186c384-a744-447b-bd5b-3359d2ffd4b4:",
+          "Name": "source"
+        }
+      },
+      {
+        "ColumnName": "geolts_id",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:311dcaba-6512-4144-aa7c-79a9de19b4ab:",
+          "Name": "identifier"
+        }
+      },
+      {
+        "ColumnName": "geolts_notation",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:f626d5a4-47dd-4abd-92db-3a17ddee73fe:",
+          "Name": "geologic age code"
+        }
+      },
+      {
+        "ColumnName": "geolts_libelle",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:0eb70eac-c3d2-4448-b617-10260c4abee3:",
+          "Name": "name"
+        }
+      },
+      {
+        "ColumnName": "lithologie_fiche",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:4487b6ca-c5bd-4667-b1d4-7a04dc0bcd5b:",
+          "Name": "litho description"
+        }
+      }
+    ]
+  }
+}

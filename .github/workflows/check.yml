@@ -1,0 +1,57 @@
+name: check
+# energyml check: no error on the clean package, exactly the expected findings on the variant.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the CLI version
+        id: v
+        run: echo "version=$(head -n1 recipe/energyml-version | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install the published energyml CLI
+        # The `hdf5` feature over the system libhdf5, as in replay.yml.
+        run: |
+          sudo apt-get update && sudo apt-get install -y libhdf5-dev pkg-config
+          cargo install energyml-cli --version "${{ steps.v.outputs.version }}" --features hdf5 --locked
+
+      - name: Clean package, exit code 0 (no error)
+        run: energyml check package/Lutetia.epc
+
+      - name: Package with errors, exactly the expected findings
+        # `check` exits 1 on this package (it holds errors on purpose), hence `|| true`;
+        # scripts/findings.py fails on its own if the report has no totals line.
+        run: |
+          energyml check --errors-only --max 1000 package-with-errors/Lutetia.epc > check-errors.txt || true
+          python scripts/findings.py < check-errors.txt > actual.txt
+          grep -v '^#' docs/errors.expected.txt > expected.txt
+          diff -u expected.txt actual.txt
+
+  # Secrets and personal data never enter this repository. Built from source rather than
+  # gitleaks/gitleaks-action (licence key on organisation repos). TODO(verify): the
+  # action's current major is v3.0.0 (Node 24).
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # gitleaks pinned to a release and checked against its published SHA-256 (`go install
+      # ...@latest` broke on a module-path conflict of the upstream repository).
+      - name: Install gitleaks 8.30.1
+        run: |
+          curl -sSL -o gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tgz" | sha256sum -c -
+          tar -xzf gitleaks.tgz gitleaks && rm gitleaks.tgz
+      - name: Scan the working tree and the history
+        run: |
+          ./gitleaks dir . --redact --exit-code 1
+          ./gitleaks git . --redact --exit-code 1

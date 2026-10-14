@@ -1,0 +1,54 @@
+{
+  "kind": "osdu:wks:master-data--ColumnBasedTableTemplate:1.0.1",
+  "data": {
+    "Name": "Lutetia [ERROR] - properties that break a rule on purpose",
+    "Description": "proprietes.csv: the values the [ERROR] model (docs/errors.md) lays on the frame of [ERROR] GTH-9. `force per length` (E-01) and `property` (E-02) are abstract kinds of the Energistics dictionary 2.3 (IsAbstract true): no value is laid on a kind that is a category. `[ERROR] lithology` gives E-03 its codes - the column name is the title of its table, hence the mark -; the table they are ranks in is then keyed from 1 by the step erreur-table-lithologie, so code 0 has no row. Invented values.",
+    "KeyColumns": [
+      {
+        "ColumnName": "well",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:348c9a4d-e3e4-4beb-8456-f07a46660de1:",
+          "Name": "well name"
+        }
+      },
+      {
+        "ColumnName": "md",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:c48c65d4-9680-4d10-903c-a1b2e30f66b5:",
+          "Name": "measured depth"
+        },
+        "UnitOfMeasureID": "namespace:reference-data--UnitOfMeasure:m:"
+      }
+    ],
+    "Columns": [
+      {
+        "ColumnName": "force per length",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:e75d460c-12d3-4610-b580-a2e95c0002f1:",
+          "Name": "force per length"
+        },
+        "UnitOfMeasureID": "namespace:reference-data--UnitOfMeasure:N/m:"
+      },
+      {
+        "ColumnName": "property",
+        "ValueType": "number",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:a48c9c25-1e3a-43c8-be6a-044224cc69cb:",
+          "Name": "property"
+        },
+        "UnitOfMeasureID": "namespace:reference-data--UnitOfMeasure:Euc:"
+      },
+      {
+        "ColumnName": "[ERROR] lithology",
+        "ValueType": "string",
+        "PropertyType": {
+          "PropertyTypeID": "namespace:reference-data--PropertyType:43bbe22e-78d9-4a4f-b2d1-584c4dff4de3:",
+          "Name": "litho type"
+        }
+      }
+    ]
+  }
+}

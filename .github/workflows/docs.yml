@@ -1,0 +1,19 @@
+name: docs
+# docs/inventory.md is generated from package/Lutetia.epc; fail if it is stale.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Regenerate the inventory
+        run: python scripts/inventory.py --epc package/Lutetia.epc --out docs/inventory.md
+      - name: Fail if it differs
+        run: git diff --exit-code -- docs/inventory.md

@@ -1,0 +1,27 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "lutetia-emprise",
+      "properties": {
+        "name": "Lutetia - emprise",
+        "source": "written for the Lutetia recipe: corners in WGS 84 with six decimals, the boundary set at the mean ground level",
+        "lambert93": "rectangle X 650600-652000, Y 6861100-6862700 (EPSG:2154): the corners below give back these round values within 5 cm",
+        "elevation": "35 m NGF-IGN69 (EPSG:5720): the median of the 18 known ground elevations of the retained boreholes (26.14 to 37.7 m; median 35.06)"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [2.326837, 48.848049, 35],
+            [2.345914, 48.848154, 35],
+            [2.345733, 48.862543, 35],
+            [2.326651, 48.862437, 35],
+            [2.326837, 48.848049, 35]
+          ]
+        ]
+      }
+    }
+  ]
+}

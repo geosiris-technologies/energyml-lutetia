@@ -1,0 +1,2530 @@
+# Lutetia - the recipe.
+#
+# Played by `energyml_build::recipe`, through the single entry point of `energyml create`:
+#
+#   energyml create --recipe recipe/recette.toml --plan
+#   energyml create --recipe recipe/recette.toml --out Lutetia.epc
+#
+# This recipe makes up the first stages of the Lutetia model, using
+# only the operations that exist today. Each step says what it produces (the
+# objects).
+#
+# To correct something, edit this file and replay it: same inputs, same package.
+# A step that waits carries `attente = "why"`: it is checked, reported,
+# declared in the workflow, and not played - never commented out.
+
+titre = "Lutetia"
+activite = "build Lutetia"                       # the root activity
+workflow = "workflow:lutetia"                   # its template - one sub-activity per step
+creation = "2026-09-24T00:00:00Z"               # the day the decision was taken: fixed, so that two runs write the same package
+auteur = "Geosiris"
+donnees = "Lutetia.h5"                          # a single .h5
+description = "Lutetia: the synthetic model of the Paris Basin around the Louvre. Played from recipe/recette.toml of the energyml-lutetia repository."
+
+# ---------------------------------------------------------------------------
+# Stage 1 - the reference frames, the boundary, the column
+# ---------------------------------------------------------------------------
+
+# A ProjectedCrs EPSG:2154 (Lambert-93), a VerticalCrs EPSG:5720
+# (NGF-IGN69), a LocalEngineering2dCrs "plan" (identity: origin 0/0,
+# azimuth 0 - what is written in it is Lambert-93), a "profondeur" compound
+# {down, m}. The parameters `axis`, `timeUom`, `originEasting`,
+# `originNorthing`, `azimuth` are the ones the design adds to `crs`.
+[[etape]]
+nom = "repere-profondeur"
+operation = "crs"
+set = { epsg = 2154, vertical = 5720, axis = "depth" }
+
+# A "temps" compound {down, ms, IsTime} on the same VerticalCrs 5720: a
+# standalone VerticalCrs cannot be in time (CRS.xsd l. 677) - it is the
+# embedded axis that says Z is a time. The ProjectedCrs and the VerticalCrs are
+# rewritten identically (the report counts them "replaced").
+[[etape]]
+nom = "repere-temps"
+operation = "crs"
+set = { epsg = 2154, vertical = 5720, axis = "time", timeUom = "ms" }
+
+# A LocalEngineering2dCrs "grille", azimuth 30° (the grid aligned on F1),
+# and a "grille, profondeur" compound {down, m}. The origin is
+# **synthetic**: "near the platform", and the platform sits on the
+# relief of the south-east, between the heads of GTH-1 (~651 620 / 6 861 170) and of
+# GTH-2 (~651 595 / 6 861 145) - hence 651 600 / 6 861 150.
+[[etape]]
+nom = "repere-grille"
+operation = "crs"
+set = { epsg = 2154, vertical = 5720, axis = "depth", originEasting = 651600.0, originNorthing = 6861150.0, azimuth = 30.0 }
+
+# A CulturalFeature "model frontier", a GenericFeatureInterpretation,
+# a closed PolylineSetRepresentation with 4 nodes: the model extent, at
+# the mean ground level (35 m NGF). Provenance: `donnees/emprise.geojson` and the
+# README of this folder.
+#
+# Through `polylines` and not `boundary`: `boundary` only takes a shape with
+# polylines, and no file reader returns one (a GeoJSON is read as a
+# collection, `mesh::read` returns segments). `polylines` writes the same
+# triplet from the collection - a CulturalFeature because `featureType` names
+# it, its kind through `featureKind`. `LineRole` (`outer ring`) is written by
+# neither of the two.
+[[etape]]
+nom = "bord"
+operation = "polylines"
+entrees = [ { creneau = "features", fichier = "donnees/emprise.geojson" } ]
+set = { sourceEpsg = 4326, project = 2154, vertical = 5720, featureType = "resqml22.CulturalFeature", interpretationType = "resqml22.GenericFeatureInterpretation", featureKind = "model frontier", closed = true, title = "Lutetia - model extent" }
+
+# A Model "BRGM chronostratigraphy - …", a StratigraphicColumn, and
+# its ranks and units: the selection is Quaternary (1289,
+# the whole branch: the Holocene and Upper Pleistocene that the BRGM names
+# in the passes are in it), Paleogene (1242), Cretaceous (1192). By identifier,
+# which designates a single division; `finest` stays at the stage (7). Since
+# 24/09, the **ancestors** of the chosen divisions enter too (the chain only:
+# Phanerozoic, Cenozoic, Mesozoic - `ancestors`, on by default), and a
+# rank carries the number of its level in the chart, never its position.
+[[etape]]
+nom = "colonne"
+operation = "stratigraphy-from-geolts"
+set = { units = ["1289", "1242", "1192"], language = "en" }
+
+# Three time series, chained by their parentage: commissioning
+# continues the drilling, operation continues commissioning, the month-by-month
+# of 2025 continues operation. Each junction shares its instant (`overlap`, the
+# final state of one is the initial state of the other). Synthetic dates,
+# declared as such in the design.
+[[etape]]
+nom = "temps-forage"
+operation = "time-series"
+set = { title = "Lutetia - drilling and commissioning of the doublet", times = ["2015-06-30T00:00:00Z", "2015-09-30T00:00:00Z", "2016-01-01T00:00:00Z"] }
+
+[[etape]]
+nom = "temps-exploitation"
+operation = "time-series"
+entrees = [ { creneau = "parent", etape = "temps-forage", type = "TimeSeries" } ]
+set = { title = "Lutetia - doublet operation, year by year", times = ["2016-01-01T00:00:00Z", "2017-01-01T00:00:00Z", "2018-01-01T00:00:00Z", "2019-01-01T00:00:00Z", "2020-01-01T00:00:00Z", "2021-01-01T00:00:00Z", "2022-01-01T00:00:00Z", "2023-01-01T00:00:00Z", "2024-01-01T00:00:00Z", "2025-01-01T00:00:00Z", "2026-01-01T00:00:00Z"], timeSteps = true, parentIndex = 2 }
+
+[[etape]]
+nom = "temps-mensuel"
+operation = "time-series"
+entrees = [ { creneau = "parent", etape = "temps-exploitation", type = "TimeSeries" } ]
+set = { title = "Lutetia - 2025, month by month", times = ["2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z", "2025-03-01T00:00:00Z", "2025-04-01T00:00:00Z", "2025-05-01T00:00:00Z", "2025-06-01T00:00:00Z", "2025-07-01T00:00:00Z", "2025-08-01T00:00:00Z", "2025-09-01T00:00:00Z", "2025-10-01T00:00:00Z", "2025-11-01T00:00:00Z", "2025-12-01T00:00:00Z", "2026-01-01T00:00:00Z"], parentIndex = 9 }
+
+# A `BusinessAssociate` BRGM ("should" level; real data).
+# The BRGM is a real organisation: its name and its role,
+# nothing else - no address, phone, email or contact, which the design
+# does not give and which are not invented (the real keeps its
+# provenance); the design does not give a website either, and the schema has
+# no field to carry one. Its role here: the source of the BSS boreholes (step
+# `forages`) and of the GeolTs chronostratigraphic chart (step
+# `colonne`).
+# Left empty, and to be decided: `authorityCode` - the use case writes the authority `BRGM`,
+# but the aliases actually written carry `BRGM/BSS` (sigeol-boreholes) and
+# `BRGM GeolTs`, `BRGM notation`… (stratigraphy-from-geolts), and `AuthorityCode`
+# holds only one; `organizationKind` and the expanded name as an alias ("Bureau de
+# recherches géologiques et minières", `local language name`), which the design
+# does not name.
+[[etape]]
+nom = "brgm"
+operation = "business-associate"
+set = { title = "BRGM", roles = ["data provider"], description = "BRGM, the French geological survey: the source of the BSS boreholes and of the GeolTs chronostratigraphic chart this model reads. A real organisation: only its name and its role are written here, no contact details." }
+
+# The `LoggingCompany` of the synthetic channels (step `logs-doublet`): WITSML
+# 2.1 requires it on each `Channel` (TRG v2.1 p. 138, 1..1). The values of
+# `temperature-doublet` and `pression-doublet` are set by a **synthetic**
+# law - "order of magnitude, to be sourced (BRGM/SIGES
+# Île-de-France)" - that the model's author chose, not the BRGM: naming the BRGM
+# as the company that logged these values would attribute to it a measurement it did
+# not make (the invented says so). `witsml-logs` says so too:
+# "name the one responsible for the law, or the author's own". The author of
+# the model is the one of the recipe (`auteur = "Geosiris"`, at the top of this
+# file); its name and its role, nothing else. No dedicated object id: the
+# design's object register does not provide one; it serves the `logs-doublet` step.
+[[etape]]
+nom = "etude"
+operation = "business-associate"
+set = { title = "Geosiris", roles = ["model author"], description = "Author of the synthetic model Lutetia and of the laws its synthetic logs are laid by (every invented value is flagged synthetic and sourced). Named as the logging company of channels that no company logged." }
+
+# ---------------------------------------------------------------------------
+# Stage 2 - the BSS boreholes and their passes
+# ---------------------------------------------------------------------------
+
+# A WellboreFeature + WellboreInterpretation, a ReferencePointInACrs,
+# a trajectory, a frame - for the boreholes of the harvest that have
+# passes. According to `donnees/bss/README.md` (read in the code, not played): 14
+# are written; BSS004PSGA is discarded **by name** (no elevation - the
+# refusal is what is shown); NSYT, NZNM, NZNP, PATK, NVHN, NVGR, CIKC and
+# CIKW are discarded for lack of `logElement`. The report of the step counts them.
+#
+# The path chosen for the boreholes is this one, then the stage table in
+# `enrich` (step `etages`) - rather than the table alone - because:
+#   - the PSGA refusal only exists through this import: PSGA is not in the table;
+#   - the 14 boreholes are in the package right now, the table awaiting
+#     its review;
+#   - their heads and their MDs are those of the harvest, verbatim; and the table
+#     recognises them (title + head, same MDs), so `enrich` rewrites **these**
+#     frames with their units instead of laying a second one beside them.
+[[etape]]
+nom = "forages"
+operation = "sigeol-boreholes"
+entrees = [ { creneau = "features", fichier = "donnees/bss/forages.geojson" } ]
+set = { sourceEpsg = 4326, project = 2154, vertical = 5720 }
+
+# The stage of each pass, and the unit of each interval
+# (`IntervalStratigraphicUnits`, TRG 2.2 §5.34): `units`/`unitLabels` name the
+# columns of the GeolTs notation and label, attached by code **and**
+# label. The 14 boreholes of `forages` are recognised and their frames
+# rewritten (`enrich`); the 6 whose section comes from the data sheet alone (NSYT, NZNM, NZNP, NVHN,
+# CIKC, CIKW) are created from the table. The 20 passes without a stage remain without a
+# unit, counted (`units-unknown`). `sourceEpsg` is read from the `epsg` column.
+[[etape]]
+nom = "etages"
+operation = "wells-and-properties-from-table"
+entrees = [ { creneau = "table", fichier = "donnees/bss/passes-etages.csv" } ]
+template = "donnees/bss/passes-etages.template.json"
+set = { project = 2154, vertical = 5720, units = "geolts_notation", unitLabels = "geolts_libelle", enrich = true, language = "en" }
+
+# ---------------------------------------------------------------------------
+# Stage 3 - the contacts and the surfaces
+# ---------------------------------------------------------------------------
+
+# The ground (the DTM) on the borehole elevations: the collars are read from the
+# datums (never from the geometry), then a grid that honours them exactly.
+# **First approximation**: the 14 imported boreholes, where the design wants the
+# elevations of all the boreholes of the extent - hence the titles. The cloud of
+# collars is not in the object register: it is the input of the DTM.
+# Also the BoundaryFeature and its interpretation "the ground", created here.
+[[etape]]
+nom = "sol-collets"
+operation = "pointset-from-wellheads"
+entrees = [ { creneau = "wells", etape = "forages", type = "WellboreFrameRepresentation" } ]
+set = { title = "Lutetia - DTM control points, 14 BSS collars", featureType = "resqml22.BoundaryFeature", interpretationType = "resqml22.BoundaryFeatureInterpretation" }
+
+# The DTM: 25 m spacing. The grid covers the extent of the collars widened by
+# `margin`, and **its lattice is the one of all the horizons**: H1, H3, H4, H5
+# and H6 are interpolated onto it (`onto`, which takes over its origin, steps
+# and counts as they are), H7 and H2 take it over from their reference - hence a single
+# lattice under the IJK grid. Covering the model extent rather than that of the
+# collars would require giving the extent itself: not yet.
+[[etape]]
+nom = "sol"
+operation = "interpolate"
+entrees = [ { creneau = "shape", etape = "sol-collets", type = "PointSetRepresentation" } ]
+set = { method = "idw", spacing = 25.0, margin = 400.0, title = "Lutetia - DTM (14 BSS boreholes)" }
+
+# The slope of the DTM - what the grid says of itself, without the stages:
+# dip and slope azimuth at each node, by differences centred on the
+# positions (`surface-map` on a lattice, 25/09; Zevenbergen & Thorne 1987).
+# Prompted by a remark on the 3D view: no property on the
+# "sol" grid. The vertical sense is that of the borehole frame (elevation).
+[[etape]]
+nom = "dtm-pendage"
+operation = "surface-map"
+entrees = [ { creneau = "shape", etape = "sol", type = "Grid2dRepresentation" } ]
+set = { what = "dip", vertical = "elevation", title = "Lutetia - DTM - dip" }
+
+[[etape]]
+nom = "dtm-azimut"
+operation = "surface-map"
+entrees = [ { creneau = "shape", etape = "sol", type = "Grid2dRepresentation" } ]
+set = { what = "azimuth", vertical = "elevation", title = "Lutetia - DTM - dip azimuth" }
+
+# A colour map on the dip of the DTM, and the entry that attaches it to it - to
+# test that a painting follows its map. The motivation: check whether a
+# property has an associated colormap (it could be done on one of the properties of
+# "Lutetia - DTM (14 BSS boreholes)" in Lutetia) so that changing a value in the
+# colormap can be tested to see whether the painted view in the scene updates.
+# Flat bands, one per dip level in degrees (`colormap` writes them as pairs of
+# stops); the package carried no `ColorMap` before it.
+[[etape]]
+nom = "dtm-pendage-carte"
+operation = "colormap"
+set = { title = "Lutetia - DTM - dip - colour map", levels = [0.0, 1.0, 2.0, 4.0, 8.0], colours = ["#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"] }
+
+[[etape]]
+nom = "dtm-pendage-couleurs"
+operation = "graphical-information"
+entrees = [
+  { creneau = "mapped", etape = "dtm-pendage", type = "ContinuousProperty" },
+  { creneau = "colourMap", etape = "dtm-pendage-carte", type = "ContinuousColorMap" },
+]
+set = { title = "Lutetia - DTM - dip - colours" }
+
+# The top and the base of each unit that the frames name, as point clouds
+# (a top only under a unit, a base only on a unit), with what the
+# borehole properties carry there. Takes the frames that `etages` writes.
+[[etape]]
+nom = "contacts"
+operation = "contacts-from-frames"
+entrees = [ { creneau = "frames", etape = "etages", type = "WellboreFrameRepresentation" } ]
+
+# H4, the top of the Sparnacian - the "Sparnacien - top" cloud that
+# `contacts` writes (the title is `<unit> - top`, the unit being the GeolTs
+# label that the table names). The grid represents the horizon interpretation
+# of the cloud, suggested by it. **On the lattice of the ground** (`onto`, the DTM): the
+# contacts are in the borehole frame (EPSG:2154 + EPSG:5720, in
+# elevation), the one of the ground - the operation would refuse two frames, naming them.
+# What the scatter does not reach remains a hole, counted.
+[[etape]]
+nom = "h4"
+operation = "interpolate"
+entrees = [
+  { creneau = "shape", etape = "contacts", type = "PointSetRepresentation", titre = "Sparnacian - top" },
+  { creneau = "onto", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { method = "idw", title = "H4 - top of the Sparnacian" }
+
+# H5, the top of the Selandian - of the Marnes de Meudon, measured by
+# NXAD, NYRW, NTGZ and NTWA. On the lattice of the ground, like H4.
+[[etape]]
+nom = "h5"
+operation = "interpolate"
+entrees = [
+  { creneau = "shape", etape = "contacts", type = "PointSetRepresentation", titre = "Selandian - top" },
+  { creneau = "onto", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { method = "idw", title = "H5 - top of the Selandian" }
+
+# H6, the top of the Chalk - the base of the Tertiary, erosion
+# surface no. 2 -, measured by the three boreholes of the recipe that
+# reach the flint Chalk: NXAD (63.3 m), NYRW (87.3 m), NTGZ (72 m)
+# (`donnees/bss/passes-etages.csv`, stage `Campanien`). Like H4 and H5, the
+# grid is **in elevation**, in the contact frame: it is not the depth
+# version (in the depth compound CRS), nor the time one (in the time compound CRS) - those
+# are written from it by `change-frame` (below). It is the
+# reference of H7, and the input of the `fault-throw` of stage 7. On the
+# lattice of the ground, like H4: H7 takes it over from it.
+[[etape]]
+nom = "h6"
+operation = "interpolate"
+entrees = [
+  { creneau = "shape", etape = "contacts", type = "PointSetRepresentation", titre = "Campanian - top" },
+  { creneau = "onto", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { method = "idw", title = "H6 - top of the Chalk" }
+
+# H6 in depth, in the depth compound CRS. The grid of `h6` is in
+# elevation in the borehole frame (EPSG:2154 + EPSG:5720, identity, z up);
+# the depth compound CRS is on the same plane (the "plan" LocalEngineering2dCrs) and the same vertical (the
+# VerticalCrs 5720), axis `down`, origin at NGF zero (`repere-profondeur` does not give
+# `originVertical`): each z becomes −z, x and y do not move.
+# Same lattice - that of the ground, which H6 received through `onto` -, same order. No `onto`
+# here nor in `h6-temps`: `change-frame` interpolates nothing, and the depth CRS
+# as well as the time CRS are frames other than that of the ground, which `interpolate`
+# would refuse, naming them. Same interpretation as H6 - two
+# representations of one horizon, the RESQML idiom.
+[[etape]]
+nom = "h6-profondeur"
+operation = "change-frame"
+entrees = [ { creneau = "shape", etape = "h6", type = "Grid2dRepresentation" } ]
+set = { crs = { etape = "repere-profondeur", type = "LocalEngineeringCompoundCrs" }, title = "H6 - top of the Chalk, in depth" }
+
+# H6 in time, in the time compound CRS ("same grid, Z converted by the
+# velocity law"). From the depth version (depth → time): the law is laid under
+# the origin of the time CRS - t = 0 at NGF zero, `repere-temps` giving no
+# `originVertical`. **Synthetic law** (the invented says so; the use case reads:
+# "declared velocity-depth law (to be sourced)"): V0 = 1 800 m/s at NGF zero,
+# k = 0.6 s⁻¹, two-way times - orders of magnitude for Tertiary sands, marls
+# and limestones and a shallow chalk, not measured. H6 (−27.7 to
+# −48.3 m NGF) falls at about 31-54 ms. The object carries `synthetic = true` and its law
+# in `Citation/Description`.
+[[etape]]
+nom = "h6-temps"
+operation = "change-frame"
+entrees = [ { creneau = "shape", etape = "h6-profondeur", type = "Grid2dRepresentation" } ]
+set = { crs = { etape = "repere-temps", type = "LocalEngineeringCompoundCrs" }, law = "linear", v0 = 1800.0, k = 0.6, travelTime = "two-way", source = "synthetic - velocity-depth law, declared and still to be sourced: V0 = 1800 m/s at the NGF zero, k = 0.6 s-1, orders of magnitude for Tertiary ground and shallow chalk, not measured; to be sourced", title = "H6 - top of the Chalk, in time" }
+
+#          (end of "Stage 3 - the contacts and the surfaces"), before the banner
+#          "Stage 4" ----
+
+# H1, the base of the Quaternary - base of the alluvium, erosion
+# surface no. 1 -, measured by the BSS at 2.9-10.5 m.
+# Through `contacts-from-frames` **at a rank** (contacts at a rank of the column are needed):
+# `unit = "1289"`, the Quaternary, a system (rank 3).
+# The passes that the BRGM dates Holocene (1326, a series) and Upper
+# Pleistocene (1316, a sub-series) are **inside** the Quaternary by the chart;
+# the Lutetian below is **outside** it by its ages - the limit between the two
+# is the base, whatever the name of the pass. The data sheet of NSYT writes
+# `EOCENE-MOYEN` under its Quaternary: outside too, it is a point of H1. No
+# top: above the Quaternary there are only passes without a stage
+# ("Avant puits", "Sous sol"), which make no contact. The cloud is called
+# "Quaternaire (system) - base"; its BoundaryFeature and its
+# HorizonInterpretation are created here.
+[[etape]]
+nom = "h1-points"
+operation = "contacts-from-frames"
+entrees = [ { creneau = "frames", etape = "etages", type = "WellboreFrameRepresentation" } ]
+set = { unit = "1289", language = "en" }
+
+# H1 as a grid, on the lattice of the ground (25 m spacing), like H4,
+# H5, H6 - in elevation, in the contact frame, which is that of the ground. The
+# grid represents the interpretation of the cloud.
+[[etape]]
+nom = "h1"
+operation = "interpolate"
+entrees = [
+  { creneau = "shape", etape = "h1-points", type = "PointSetRepresentation", titre = "Quaternary (system) - base" },
+  { creneau = "onto", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { method = "idw", title = "H1 - base of the Quaternary" }
+
+# H3, the top of the Ypresian - the base of the Lutetian, 26.8 m (NUKL)
+# to 40.12 m (NTCE) -, measured. At the stage (`rank = 6`) and of the Lutetian
+# alone (`unit = "1255"`): each pass is read **against the stage**, so the
+# base is that of the Lutetian whether the pass above is "Lutétien",
+# "Lutétien moyen", "Lutétien inférieur" or "Lutétien supérieur", and the
+# internal limit is never one (NTCE at 20.4 m: Upper Lutetian / Lutetian).
+# Below, the Sparnacian, the Cuisian - two regional divisions of the Ypresian -
+# and the Ypresian are outside by their ages. `rank` is restated for the
+# reader: the operation refuses a unit that would not be of this rank.
+# What cannot be read is counted (`rank-unknown`): the `EOCENE-MOYEN` of NSYT
+# **contains** the Lutetian, so no base is read there.
+# The step also writes "Lutétien (stage) - top": under the alluvium it is H1
+# (the erosion), and nowhere H2 - no pass is Bartonian.
+[[etape]]
+nom = "h3-points"
+operation = "contacts-from-frames"
+entrees = [ { creneau = "frames", etape = "etages", type = "WellboreFrameRepresentation" } ]
+set = { rank = 6, unit = "1255", language = "en" }
+
+# H3 as a grid - the top of the IJK grid. The H1-H3 thickness property
+# (`thickness`), the surface (`triangulate`) and the isocontours
+# (`isocontours`) start from here; not yet written. On the lattice of the
+# ground, like H4 - and H2 takes it over from it.
+[[etape]]
+nom = "h3"
+operation = "interpolate"
+entrees = [
+  { creneau = "shape", etape = "h3-points", type = "PointSetRepresentation", titre = "Lutetian (stage) - base" },
+  { creneau = "onto", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { method = "idw", title = "H3 - top of the Ypresian" }
+
+# H3 as triangles (a `TriangulatedSetRepresentation` of H3) - the nodes of
+# the H3 grid triangulated in plan (Delaunay on x, y), their z kept. This is what
+# the OBJ export takes. Same interpretation as the H3 grid, read from the input.
+[[etape]]
+nom = "h3-triangulee"
+operation = "triangulate"
+entrees = [ { creneau = "shape", etape = "h3", type = "Grid2dRepresentation" } ]
+set = { title = "H3 - top of the Ypresian (triangulated)" }
+
+# ---------------------------------------------------------------------------
+# Stage 4 - the horizons that no borehole measures
+# ---------------------------------------------------------------------------
+
+# H7, the top of the Santonian - "synthetic: below any measurement
+# (NXAD stops at 150.7 m in the Campanian)". Laid **below H6** at the thickness
+# of the Campanian, **declared synthetic** ("a plausible value
+# is declared synthetic"): 95 m, i.e. the Santonian "below ~170 m" that the
+# design gives as invented, minus the measured top of the Chalk, 63.3-87.3 m
+# (≈ 74 m on average over NXAD, NYRW, NTGZ). Compatible with the only measurement
+# that bounds it: NXAD is still in the Campanian at 150.7 m, i.e. ≥ 87.4 m of
+# Campanian below its top (63.3 + 95 = 158.3 m > 150.7 m). The grid carries
+# `synthetic = true` and its law in `Citation/Description`; it
+# is the input of the `fault-throw` of stage 7, and the base of the IJK grid.
+# Also the BoundaryFeature and the HorizonInterpretation of H7, created here.
+[[etape]]
+nom = "h7"
+operation = "horizon-from-law"
+entrees = [ { creneau = "reference", etape = "h6", type = "Grid2dRepresentation" } ]
+set = { law = "parallel", side = "below", thickness = 95.0, source = "synthetic - Santonian “below ~170 m”, invented, minus the measured top of the Chalk (63.3-87.3 m at NXAD, NYRW, NTGZ, passes-etages.csv); bounded by NXAD, still in the Campanian at 150.7 m; to be sourced (BRGM/SIGES Île-de-France)", title = "H7 - top of the Santonian", featureType = "resqml22.BoundaryFeature", interpretationType = "resqml22.HorizonInterpretation" }
+
+# H2, the top of the Lutetian: "synthetic, under the south-east relief only;
+# elsewhere truncated by H1 or by the fill". No borehole measures it: no pass
+# is Bartonian, and everywhere the Lutetian is read its top has been removed
+# by erosion. Placed **above H3** at the thickness of the Lutetian, **declared
+# synthetic** (rule: synthetic data is declared as such): 40 m, more than the
+# greatest measured thickness of the truncated Lutetian - 36.4 m at NYRW
+# (6.8-43.2 m), 36.3 m at NTCE (3.8-40.12 m), `donnees/bss/passes-etages.csv` -,
+# since a truncated thickness only bounds the stage from below. **Cut**
+# by H1 ("H1 {older} stops H2 {both}") and by the ground: a node
+# above either of them is a hole, never brought back onto them. What
+# remains is the south-east relief, where the ground rises to ~47 m NGF.
+# The grid carries `synthetic = true` and its law in `Citation/Description`
+# (rule: the law of a synthetic object is written in its description). In the
+# design H2 is a `TriangulatedSetRepresentation`; the operation writes the grid
+# of its reference (`horizon_law.rs`) - a `triangulate` on top of it will give
+# one. The BoundaryFeature and the HorizonInterpretation of H2, created here.
+[[etape]]
+nom = "h2"
+operation = "horizon-from-law"
+entrees = [
+  { creneau = "reference", etape = "h3", type = "Grid2dRepresentation" },
+  { creneau = "cuts", etape = "h1", type = "Grid2dRepresentation" },
+  { creneau = "cuts", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { law = "parallel", side = "above", thickness = 40.0, source = "synthetic - H2 is measured by no borehole (no Bartonian pass); 40 m above the base of the Lutetian, more than the greatest measured thickness of the Lutetian truncated by erosion: 36.4 m at NYRW (6.8-43.2 m), 36.3 m at NTCE (3.8-40.12 m), passes-etages.csv; to be sourced (BRGM/SIGES Île-de-France)", title = "H2 - top of the Lutetian", featureType = "resqml22.BoundaryFeature", interpretationType = "resqml22.HorizonInterpretation" }
+attente = "the top of the Lutetian is eroded everywhere in the area according to the boreholes: 40 m above H3 puts H2 above H1 on all 6,715 nodes, and the operation refuses an empty surface - the model design expected a remnant under the relief of the south-east that the data do not show; to be decided (keep H2 without a representation, or use another law)"
+
+# Extended boreholes ("10 BSS boreholes extended to 200 m at most: nodes at the
+# real limits of the passes, then [...]"; extension capped at 200 m depth). A
+# second trajectory/frame pair per logged borehole, attached to the same
+# interpretation and the same datum that `forages` wrote -
+# never rewrite them (a rule of energyml-build: enriching does not overwrite,
+# and enriching has a price): a property already set on the logged frame stays
+# valid on it. Takes the frames of `etages` rather
+# than those of `forages`: they are the ones that already carry the unit of each
+# interval (`IntervalStratigraphicUnits`), which the synthetic part added here
+# does not touch. The 8 BSS boreholes without a pass have no frame and are
+# therefore not concerned.
+[[etape]]
+nom = "forages-etendus"
+operation = "extend-boreholes"
+entrees = [ { creneau = "frames", etape = "etages", type = "WellboreFrameRepresentation" } ]
+set = { maxDepth = 200.0, step = 10.0, source = "synthetic - extended straight down from the logged base to at most 200 m, a node every 10 m; a BSS hole is vertical, so the extension continues straight down" }
+
+# ---------------------------------------------------------------------------
+# Step 8 - the IJK grid
+# ---------------------------------------------------------------------------
+
+# `IjkGridRepresentation` "Ypresian-Chalk": "zone 1:
+# the Ypresian - Cuise Sands, Sparnacian - (k 1-3, from H3 to H5, H4 inside);
+# one K gap: the Meudon Marls, unmeshed cover (from H5
+# to H6); zone 2: the Chalk (k 4-10, from H6 to H7)". The horizons are given
+# **from top to bottom** (H3, H4, H5, H6, H7), and `layers` counts the layers of
+# each consecutive pair: 2 + 1 for the Ypresian on either side of H4,
+# 0 for the H5-H6 gap, 7 for the Chalk - 10 layers, 1 gap, 11 intervals
+# (TRG 2.2 section 5.34 p. 130; "NKL = NK + gapCount + 1", section 5.36 p. 132).
+# The 2 + 1 split is a choice made here ("k 1-3 [...] H4 inside"), to be
+# confirmed.
+#
+# What this step writes **is not yet the whole grid intended**, and says so:
+# - the grid is in the frame of the horizons - the compound of the boreholes,
+#   EPSG:2154 + EPSG:5720, in elevation -, not in a 30-degree rotated local
+#   frame: the operation rotates no lattice, and a grid in that
+#   frame requires horizons gridded in it;
+# - **explicit** vertical pillars (points), not `ParametricLineArray`
+#   kind 0; not the 21 doubled pillars along F1 (split coordinate
+#   lines); no `IntervalStratigraphicUnits` (the job of
+#   `unit-lookup`, step 5);
+# - the extent is that of the ground, which H3 to H6 take over (`interpolate`,
+#   `onto`) and H7 from H6, 25 m cells - not a ~24 x 20 window;
+# - a node where a horizon has a hole makes the cells it bounds not defined
+#   (`CellGeometryIsDefined`), and only those; no `active` property is
+#   written (usage guide 2.2 section 9.17 p. 168: it is a simulation choice,
+#   `grid-properties`);
+# - a horizon above the one that precedes it is **refused** (`crossing`
+#   left at `refuse`): `pinch` - the lower horizon brought back onto the
+#   upper one, a zero-thickness cell - is a decision, not a default.
+[[etape]]
+nom = "grille"
+operation = "ijk-grid-from-horizons"
+entrees = [
+  { creneau = "horizons", etape = "h3", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h4", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h5", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h6", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h7", type = "Grid2dRepresentation" },
+]
+set = { layers = [2, 1, 0, 7], axis = "elevation", title = "Ypresian-Chalk grid" }
+
+# ---------------------------------------------------------------------------
+# The properties of the grid (porosity, NTG, permeability, and the basis of
+# the pressure and temperature grids)
+# - `grid-properties`. Laws and values per K layer,
+# synthetic and sourced; 10 layers: `layers = [2, 1, 0, 7]`
+# of the `grille` step, the 0 being the K gap of the Meudon Marls.
+# ---------------------------------------------------------------------------
+
+# Pressure (basis): the same water table as `pression-doublet`, laid on the
+# cells of the IJK grid rather than on the frames of the boreholes.
+[[etape]]
+nom = "pression-grille"
+operation = "grid-properties"
+entrees = [
+  { creneau = "grid", etape = "grille", type = "IjkGridRepresentation" },
+  { creneau = "ground", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { what = "pressure", waterLevel = 26.5, source = "synthetic - same water table as `pression-doublet`, laid on the cells of the grid; fresh water 1000 kg/m3, standard gravity 9.80665 m/s2, gauge pressure; to be sourced (BRGM/SIGES Île-de-France)" }
+
+# Temperature (basis): the same gradient as `temperature-doublet`.
+[[etape]]
+nom = "temperature-grille"
+operation = "grid-properties"
+entrees = [
+  { creneau = "grid", etape = "grille", type = "IjkGridRepresentation" },
+  { creneau = "ground", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { what = "temperature", referenceTemperature = 12.5, referenceDepth = 20.0, gradient = 30.0, source = "synthetic - same gradient as `temperature-doublet` (12.5 °C at 20 m below the ground, 3 °C/100 m), laid on the cells of the grid; to be sourced (BRGM/SIGES Île-de-France)" }
+
+# Porosity, one value per K layer (3 Ypresian, 7 Chalk).
+[[etape]]
+nom = "porosite-grille"
+operation = "grid-properties"
+entrees = [ { creneau = "grid", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { what = "porosity", layers = [0.30, 0.30, 0.30, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35], uom = "Euc", source = "synthetic, not sourced - order of magnitude of the porosity of shallow sands (Ypresian, ~0.30) and chalk (~0.35); to be sourced" }
+
+# NTG, one value per K layer.
+[[etape]]
+nom = "ntg-grille"
+operation = "grid-properties"
+entrees = [ { creneau = "grid", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { what = "ntg", layers = [0.9, 0.9, 0.9, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], uom = "Euc", source = "synthetic, not sourced - Chalk taken as net everywhere (1.0), Ypresian slightly clayey (0.9); to be sourced" }
+
+# Permeability kx, ky, kz per K layer - **three scalar properties**
+# (Facet I, J, K), not a single three-component property:
+# `property::write` writes `ValueCountPerIndexableElement` [1], and
+# it is better to say so than to imitate it (`grid_properties.rs`, "A tensor
+# property this build does not write").
+[[etape]]
+nom = "permeabilite-grille"
+operation = "grid-properties"
+entrees = [ { creneau = "grid", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { what = "permeability", kx = [200.0, 200.0, 200.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0], ky = [200.0, 200.0, 200.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0], kz = [50.0, 50.0, 50.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0], uom = "mD", source = "synthetic, not sourced - Ypresian sands more permeable (200/50 mD) than the compact chalk (5/1 mD), vertical anisotropy 1:4; to be sourced" }
+
+# The local grid around the GTH-1 impact ("window I
+# 10-13, J 8-11, all K, refined 2 x 2 x 1 -> 8 x 8 x 10 = 640") -
+# `local-grid`. The window above counts from 1, the operation from 0 as RESQML does.
+#
+# **The Chalk layers only (K 3-9), and not "all K"**:
+# the IJK grid has a K gap after layer 2 (the Meudon Marls, `layers = [2, 1, 0,
+# 7]` of `grille`), and a window that straddles it would give the node of the
+# child on that boundary two heights - `local-grid` and the reader both refuse
+# it. GTH-1 ends at the top of the Chalk, so the Chalk is the window
+# that makes sense: 8 x 8 x 7 = 448 cells instead of 640.
+#
+# **And the window is re-centred on the impact.** The I 10-13, J 8-11 above
+# were written before the grid existed: played as they are (I 9-12, J 7-10
+# counting from 0), GTH-1 entered none of their cells - the blocked wellbore
+# said as much, its 19 intervals all in the main grid. Its cells there name the impact
+# at the top of the Chalk (K 3) at I 53, J 10-11: the window keeps its
+# size, 4 x 4, around it. `gth-1-bloque` checks that it contains it.
+[[etape]]
+nom = "grille-locale"
+operation = "local-grid"
+entrees = [ { creneau = "parent", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { i0 = 52, i1 = 55, j0 = 9, j1 = 12, k0 = 3, k1 = 9, ri = 2, rj = 2, rk = 1, title = "GTH-1 local grid" }
+
+# ---------------------------------------------------------------------------
+# Block A - after the `grille` step (step 8)
+# ---------------------------------------------------------------------------
+
+# The pressure of the grid over ten years - **one** property,
+# `TimeOrIntervalSeries` {false, ...}, values [11][10][20][24]. The
+# basis is a pressure laid on the cells of the IJK grid, which no step writes
+# yet (`grid-properties`, step 8, still to be written): the `base` input will be
+# `{ creneau = "base", etape = "<this step>", type = "ContinuousProperty",
+# titre = "..." }`. Same drift as the dated pressures: the same reservoir.
+[[etape]]
+nom = "pression-grille-serie"
+operation = "property-time-series"
+entrees = [
+  { creneau = "base", etape = "pression-grille", type = "ContinuousProperty" },
+  { creneau = "series", etape = "temps-exploitation", type = "TimeSeries" },
+]
+set = { form = "series", useInterval = false, change = -0.1, anchor = "2016-01-01T00:00:00Z", source = "synthetic - the model design gives no value; −0.1 bar per year since commissioning (2016-01-01, index 2 of the drilling and commissioning series), an unsourced order of magnitude for the slow drawdown of a doublet that reinjects; to be sourced (BRGM/SIGES Île-de-France)" }
+
+# The temperature of the grid over ten years, likewise. A colder reinjected
+# water slowly cools the reservoir: -0.05 degC per year,
+# synthetic.
+[[etape]]
+nom = "temperature-grille-serie"
+operation = "property-time-series"
+entrees = [
+  { creneau = "base", etape = "temperature-grille", type = "ContinuousProperty" },
+  { creneau = "series", etape = "temps-exploitation", type = "TimeSeries" },
+]
+set = { form = "series", useInterval = false, change = -0.05, anchor = "2016-01-01T00:00:00Z", source = "synthetic - the model design gives no value; −0.05 °C per year since commissioning (2016-01-01), an unsourced order of magnitude for the cooling of a reservoir by colder reinjected water; to be sourced" }
+
+# ===========================================================================
+# Block 1 - after the `grille` step (the IJK grid), before step 6 ("the doublet")
+# ===========================================================================
+
+# `SubRepresentation` "productive reservoir" (cell regions): the Chalk, the
+# water table of the doublet - "zone 2: the
+# Chalk (k 4-10, from H6 to H7)". The layers above are counted from 1;
+# the operation counts from 0, as RESQML does: k 4-10 is `kFirst = 3`,
+# `kLast = 9` with the layers of the `grille` step (2 + 1 for the Ypresian, the
+# H5-H6 gap which is not a layer, 7 for the Chalk). `IndexableElement`
+# `cells`, a single patch, `SupportingRepresentation` -> the IJK grid (TRG 2.2
+# section 8.9 p. 246, section 8.10 p. 247); the indices in the RESQML order of the cells, i
+# fastest. All the columns: the extent is not restricted.
+[[etape]]
+nom = "reservoir"
+operation = "subrepresentation"
+entrees = [ { creneau = "support", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { select = "ijk-box", kFirst = 3, kLast = 9, title = "Productive reservoir - Chalk" }
+
+# `RepresentationSetRepresentation` ("the Chalk grids grouped
+# (`RepresentationSetRepresentation`, `IsHomogeneous` false) -
+# the class exists in the final XSD even though the release notes say it
+# was removed": the schema wins). `Representation` -> the main IJK grid,
+# the local grid, the truncated grid and the unstructured grid, in that
+# order - the order is the index of the member in the
+# set (usage guide 2.2 section 4.7 p. 42). `homogeneous = false` is not
+# written as is: `IsHomogeneous` comes from the members, and the answer is
+# **checked** against them - played today with the main grid alone, the step
+# would be refused rather than write a set of one grid that would call itself
+# heterogeneous. What is missing is said in the wait: the local grid (`local-grid`),
+# the truncated grid and the unstructured grid have
+# no writer.
+[[etape]]
+nom = "grilles-craie"
+operation = "representation-set"
+entrees = [ { creneau = "representations", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { title = "Chalk grids", homogeneous = false }
+attente = "the main grid (`grille`) and the local grid (`grille-locale`) play, and with two IJK grids the set would be homogeneous, which the model design does not say: the step waits for the truncated grid and the unstructured grid, which no step writes yet"
+
+# ---------------------------------------------------------------------------
+# Step 6 - the geothermal doublet and its lateral
+# ---------------------------------------------------------------------------
+
+# The invented wells are written **in the frame of the boreholes** - the compound
+# EPSG:2154 + EPSG:5720 in elevation that `forages` created - and not in the
+# "depth" local frame: their ground is read on the ground grid (rule: a point is read
+# in the frame of the data), which is in
+# that frame (the `sol` grid is interpolated on the collars, written
+# in the frame of the boreholes), and a height read in one frame then written in
+# another is refused by name (the rule of `project`). The heads are the
+# **synthetic** parameters of the doublet. The datum is the rotary table,
+# 3 m above the ground - a synthetic height - written `kelly bushing`
+# as long as `rotary table` is not in the operation's list.
+# `maxDepth = 200`: vertical depth <= 200 m below the ground of the head at every
+# point (a design decision) - checked at each station, never imposed. The
+# angles and lengths below are chosen against these constraints;
+# the operation checks them, it does not compute them (the targeting is still
+# to be written).
+# `IsDrilled = false` on the four: a trajectory taken from a plan is
+# planned (Wells.xsd).
+
+# GTH-1, producer, **curved inclined**: vertical down to
+# 15 m, build at 15 deg/30 m up to 60 deg towards the NW (azimuth 315), hold 80 m,
+# **drop** at 10 deg/30 m down to 40 deg, 10 m. Bottom at MD 285, ~197 m below the ground,
+# offset ~179 m towards the NW (target: 150-250 m). The intended `LineKindIndex` is 5
+# (minimum curvature): the shared writer writes a linear spline through the
+# stations, and the plan says so.
+[[etape]]
+nom = "gth-1"
+operation = "well-from-plan"
+entrees = [ { creneau = "surface", etape = "sol", type = "Grid2dRepresentation" } ]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "GTH-1", headX = 651620.0, headY = 6861170.0, datumHeight = 3.0, datumKind = "kelly bushing", sections = ["hold to 15", "build 15 60 315", "hold 80", "drop 10 40 315", "hold 10"], step = 5.0, maxDepth = 200.0 }
+
+# GTH-2, injector, **horizontal**: vertical down to
+# 30 m, arc build at 15 deg/30 m (radius 114.6 m; target: 13-17 deg/30 m, radius
+# ~100-130 m) up to 90 deg towards the W (azimuth 270), landing at MD 210, ~142 m
+# below the ground, in the Chalk (target: 120-160 m), 250 m drain (200-300 m):
+# bottom near X 651 230, inside the extent. The intended `LineKindIndex` is 3 - same
+# remark as for GTH-1.
+[[etape]]
+nom = "gth-2"
+operation = "well-from-plan"
+entrees = [ { creneau = "surface", etape = "sol", type = "Grid2dRepresentation" } ]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "GTH-2", headX = 651595.0, headY = 6861145.0, datumHeight = 3.0, datumKind = "kelly bushing", sections = ["hold to 30", "build 15 90 270", "hold 250"], step = 5.0, maxDepth = 200.0 }
+
+# GTH-3, observation, **vertical** down to 200 m below the ground - MD
+# 203, the table being 3 m above - at ~120 m from NYRW. One node per metre
+# (204): the dense profile of the fibre, and the parent of the lateral.
+[[etape]]
+nom = "gth-3"
+operation = "well-from-plan"
+entrees = [ { creneau = "surface", etape = "sol", type = "Grid2dRepresentation" } ]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "GTH-3", headX = 651800.0, headY = 6861200.0, datumHeight = 3.0, datumKind = "kelly bushing", sections = ["hold to 203"], step = 1.0, maxDepth = 200.0 }
+
+# GTH-3 ST1, **planned lateral**: leaves
+# GTH-3 at MD 43 - 40 m below the ground, in the Ypresian (25-53 m) -, build at
+# 15 deg/30 m up to 45 deg towards the N, hold 40 m: bottom at MD 173, ~149 m below the
+# ground, in the Chalk. Its MDs are those of GTH-3, from the datum of GTH-3 (no
+# datum of its own); `ParentIntersection` names the trajectory of GTH-3, `KickoffMd`
+# 43, `ParentMd` omitted ("implied to be identical", TRG 2.2 section 12.16 p. 313). The
+# ground is used here only for `maxDepth`, read below the head of GTH-3.
+[[etape]]
+nom = "gth-3-st1"
+operation = "well-from-plan"
+entrees = [
+  { creneau = "parent", etape = "gth-3", type = "WellboreFrameRepresentation" },
+  { creneau = "surface", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "GTH-3 ST1", kickoffMd = 43.0, sections = ["build 15 45 0", "hold 40"], step = 5.0, maxDepth = 200.0 }
+
+# ===========================================================================
+# Block 2 - after the `gth-3-st1` step (end of step 6), before step 5
+#           ("the well properties given by a law")
+# ===========================================================================
+#
+# The frames of the doublet (`gth-1`, `gth-2`) and the grid are in the same
+# frame - the compound of the boreholes, EPSG:2154 + EPSG:5720 in elevation (see
+# the `grille` step) -; a grid in another frame would be refused by
+# name. The path is the frame: its MDs as the package states them, its
+# nodes on the trajectory, and the `Trajectory` of the blocked well is its own
+# one. One node at each entry and exit of a cell; the local faces
+# 0 (smallest K, the top of a `KDirection` down grid), 1, then
+# 2-5 in the circular IJ order (usage guide 2.2 section 9.12.3 p. 159); the K gap
+# of the Meudon Marls is a null interval (-1, TRG 2.2 section 5.32 p. 128). No
+# `IntervalStratigraphicUnits`: the job of `unit-lookup` (step 5).
+
+# `BlockedWellboreRepresentation` GTH-1: "GTH-1 (main grid +
+# local grid)". The local grid **before** the main grid in `grids` - the first grid listed
+# holds the section that it contains.
+[[etape]]
+nom = "gth-1-bloque"
+operation = "blocked-wellbore"
+entrees = [
+  { creneau = "frame", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "grids", etape = "grille-locale", type = "IjkGridRepresentation" },
+  { creneau = "grids", etape = "grille", type = "IjkGridRepresentation" },
+]
+set = { title = "GTH-1 - blocked" }
+
+# `BlockedWellboreRepresentation` GTH-2: "GTH-2 (main grid,
+# across F1)". The grid of the `grille` step does not yet have the pillars
+# doubled along F1 (see the `grille` step): the drain crosses it, not yet the
+# fault; the cells and the faces will be the right ones the day the grid has
+# them, with nothing to change here.
+[[etape]]
+nom = "gth-2-bloque"
+operation = "blocked-wellbore"
+entrees = [
+  { creneau = "frame", etape = "gth-2", type = "WellboreFrameRepresentation" },
+  { creneau = "grids", etape = "grille", type = "IjkGridRepresentation" },
+]
+set = { title = "GTH-2 - blocked" }
+
+
+# ===========================================================================
+# Block 3 - commented out: what waits for the local grid step
+# ===========================================================================
+#
+# To be uncommented when a step (called here `grille-locale`, name to be
+# carried over) writes the local grid with `local-grid`; place after it and after `gth-1`.
+#
+# # `SubRepresentation` "GTH-1 drainage (local grid)":
+# # the whole local window - "window I 10-13, J 8-11, all K,
+# # refined 2 x 2 x 1 -> 8 x 8 x 10 = 640" -, therefore all its cells: an
+# # unbounded box. Nothing says which cells "drain": the whole
+# # window is one reading, to be confirmed.
+# [[etape]]
+# nom = "drainage-gth-1"
+# operation = "subrepresentation"
+# entrees = [ { creneau = "support", etape = "grille-locale", type = "IjkGridRepresentation" } ]
+# set = { select = "ijk-box", title = "GTH-1 drainage" }
+# attente = "takes the local grid that the step `grille-locale` writes"
+#
+# # The blocked wellbore, whole: the local grid first, which holds the GTH-1 section in
+# # the window; the main grid elsewhere. Replaces the `gth-1-bloque` step above.
+# entrees = [
+#   { creneau = "frame", etape = "gth-1", type = "WellboreFrameRepresentation" },
+#   { creneau = "grids", etape = "grille-locale", type = "IjkGridRepresentation" },
+#   { creneau = "grids", etape = "grille", type = "IjkGridRepresentation" },
+# ]
+
+# ---------------------------------------------------------------------------
+# Step 5 - the well properties given by a law
+# ---------------------------------------------------------------------------
+#
+# After step 6, whose frames they take. `well-logs` lays down, by a **sourced** law
+# of the vertical depth below the ground, the
+# basis - pressure and temperature, on the 10 BSS frames and the
+# 3 of the doublet - and nothing else: the GTH-1 logs "from the lithology"
+# follow the stage and the lithology of each pass,
+# whose table awaits its re-reading (`etages` step); a depth law
+# alone would invent them. The salinity is a constant on a local kind,
+# the P10/P50/P90 are facets, the dated pressures are
+# step 9.
+#
+# The depth is **vertical** and counted **from the ground below the head** -
+# "vertical depth ... below the ground of the head" -, never from the
+# datum (the rotary table, 3 m above the ground), never along
+# the hole. The ground of the doublet is read on the ground grid (`sol`), the same reading that
+# `well-from-plan` made to place the wells: the same ground twice, never
+# a copied number. Above the ground and above the start of the law, NaN,
+# counted and reported. Each property carries `synthetic = true` and its law in
+# `Citation/Description`.
+#
+# GTH-3 ST1 does not carry any: planned lateral (`IsDrilled = false`), so the doublet
+# counts three frames.
+
+# Temperature, by a geothermal gradient: "~12-13 degC at
+# 20 m then a gradient of a few degC per 100 m - order of magnitude, to be sourced
+# (Paris is warmer than the countryside underground)". Retained in that order of
+# magnitude, **declared synthetic**: 12.5 degC at 20 m below the ground,
+# 3 degC per 100 m (30 degC/km). Above 20 m - the zone of seasonal
+# variations - the law says nothing: NaN, never extrapolated. GTH-3, one node per
+# metre, gives the dense profile of the fibre.
+[[etape]]
+nom = "temperature-doublet"
+operation = "well-logs"
+entrees = [
+  { creneau = "frames", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-2", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-3", type = "WellboreFrameRepresentation" },
+  { creneau = "ground", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { law = "temperature", referenceTemperature = 12.5, referenceDepth = 20.0, gradient = 30.0, source = "synthetic - “~12-13 °C around 20 m, then a gradient of a few °C per 100 m - order of magnitude, to be sourced”; 12.5 °C at 20 m below the ground and 3 °C per 100 m (30 °C/km) kept within that order of magnitude; to be sourced (BRGM/SIGES Île-de-France)" }
+
+# Hydrostatic pressure "below the top of the water table (~1 bar per 10 m of
+# water), flagged synthetic". The top of the water table is a horizontal
+# plane at the level of the Seine ("Seine level, to be sourced"): **26.5 m NGF, an unsourced order of magnitude**
+# for the weir pool of the Paris reach - an elevation, hence the same water
+# table under every head, whatever its ground. Fresh water (1000 kg/m3), standard
+# gravity (9.80665 m/s2, 3rd CGPM), relative pressure (0 bar at the top of the
+# water table): the operation's defaults, written in the activity.
+[[etape]]
+nom = "pression-doublet"
+operation = "well-logs"
+entrees = [
+  { creneau = "frames", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-2", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-3", type = "WellboreFrameRepresentation" },
+  { creneau = "ground", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { law = "hydrostatic", waterLevel = 26.5, source = "synthetic - “hydrostatic below the top of the water table (~1 bar per 10 m of water), marked synthetic”; water table top at the level of the Seine (“to be sourced”): 26.5 m NGF, an unsourced order of magnitude for the retention of the Paris reach; fresh water 1000 kg/m3, standard gravity 9.80665 m/s2, gauge pressure" }
+
+# ---------------------------------------------------------------------------
+# Block B - after the `pression-doublet` step (step 5)
+# ---------------------------------------------------------------------------
+
+# Pressure of GTH-1, **one property per year** - 11 properties, each dated by
+# its `Time` (`GeologicTime.DateTime`), one instant of the yearly time series
+# each, **without** `TimeOrIntervalSeries`. The base is the hydrostatic pressure
+# on GTH-1 (step `pression-doublet`), taken at commissioning: instant 0 of the
+# yearly time series is the snapshot itself.
+[[etape]]
+nom = "pression-gth-1-annuelle"
+operation = "property-time-series"
+entrees = [
+  { creneau = "base", etape = "pression-doublet", type = "ContinuousProperty", titre = "GTH-1 - pressure" },
+  { creneau = "series", etape = "temps-exploitation", type = "TimeSeries" },
+]
+set = { form = "steps", change = -0.1, anchor = "2016-01-01T00:00:00Z", title = "GTH-1 - pressure, yearly", source = "synthetic - the model design gives no value; the hydrostatic pressure at commissioning (2016-01-01, index 2 of the drilling and commissioning series), then −0.1 bar per year, an unsourced order of magnitude for the slow drawdown at the producer of a doublet that reinjects; to be sourced (BRGM/SIGES Île-de-France)" }
+
+# The **monthly mean** pressure of GTH-1 in 2025 - `TimeOrIntervalSeries`
+# {**true**, monthly series}: 13 dates, 12 months, 12 values. The same law as
+# the yearly properties and the same anchor (commissioning, not the first
+# instant of the monthly series): the January 2025 mean is the drift at
+# mid-January, on the same line as the yearly steps.
+[[etape]]
+nom = "pression-gth-1-mensuelle"
+operation = "property-time-series"
+entrees = [
+  { creneau = "base", etape = "pression-doublet", type = "ContinuousProperty", titre = "GTH-1 - pressure" },
+  { creneau = "series", etape = "temps-mensuel", type = "TimeSeries" },
+]
+set = { form = "series", useInterval = true, change = -0.1, anchor = "2016-01-01T00:00:00Z", title = "GTH-1 - pressure, monthly mean", source = "synthetic - the model design gives no value; the law of the yearly series (hydrostatic at commissioning, 2016-01-01, then −0.1 bar per year), averaged over each month of 2025; to be sourced" }
+
+# Temperature and hydrostatic pressure on the BSS frames ("on the 10 BSS
+# frames"). Their datum **is** the ground - the "BSS ground" datum, a
+# `ground level` datum -, hence `datumHeight = 0` rather than the ground
+# surface, which does not pass exactly through the collars. The same laws, the
+# same sources as the doublet.
+[[etape]]
+nom = "temperature-forages"
+operation = "well-logs"
+entrees = [ { creneau = "frames", etape = "forages-etendus", type = "WellboreFrameRepresentation" } ]
+set = { law = "temperature", referenceTemperature = 12.5, referenceDepth = 20.0, gradient = 30.0, datumHeight = 0.0, source = "synthetic - “~12-13 °C around 20 m, then a gradient of a few °C per 100 m - order of magnitude, to be sourced”; 12.5 °C at 20 m below the ground and 3 °C per 100 m (30 °C/km) kept within that order of magnitude; to be sourced (BRGM/SIGES Île-de-France)" }
+
+[[etape]]
+nom = "pression-forages"
+operation = "well-logs"
+entrees = [ { creneau = "frames", etape = "forages-etendus", type = "WellboreFrameRepresentation" } ]
+set = { law = "hydrostatic", waterLevel = 26.5, datumHeight = 0.0, source = "synthetic - “hydrostatic below the top of the water table (~1 bar per 10 m of water), marked synthetic”; water table top at the level of the Seine (“to be sourced”): 26.5 m NGF, an unsourced order of magnitude for the retention of the Paris reach; fresh water 1000 kg/m3, standard gravity 9.80665 m/s2, gauge pressure" }
+
+# --- and, in the `projet` step (the last one), two more members: ------------
+#   { creneau = "members", etape = "temperature-doublet" },
+#   { creneau = "members", etape = "pression-doublet" },
+
+# ---------------------------------------------------------------------------
+# Step 10 - the WITSML side of the wells (the `witsml-wells` operation: the
+# entry point learns a third package)
+# ---------------------------------------------------------------------------
+
+# `Well` ("one per head"), `Wellbore`, `Trajectory` and its stations, for the
+# doublet: GTH-1, GTH-2, GTH-3 and its lateral in **one** step, because which
+# one leaves which is read between them - ST1 measures from the datum of GTH-3
+# and leaves the path of GTH-3 at its kick-off MD: one `Well`, two `Wellbore`,
+# `ParentWellbore`. The stations are the nodes of the frames, at their MD;
+# inclination and azimuth are **derived** (inverted minimum curvature,
+# `energyml_analysis::survey`), not measured. The trajectory of ST1 runs from
+# the surface to the bottom through the stations of GTH-3 above MD 43, then its
+# own ("a single `Definitive` per hole, surface to bottom", WITSML TRG 2.1
+# §16.6 p. 350), `ParentTrajectory` and `MdTieOn` 43.
+# `existence = "planned"`: all four are planned (`IsDrilled` false on the RESQML
+# side, step 6); `synthetic = true`: they are invented (synthetic data is
+# declared as such). Target: the Campanian, the Chalk (the
+# `TargetGeologicUnitInterpretation` points to **Campanian** for the doublet).
+# Each `Well` is also located in Lambert-93 (the ProjectedCrs, `projected`
+# slot). Country and basin: those of the model ("the Paris Basin around the
+# Louvre", in France); neither operator nor field - none is named, and
+# none is invented.
+# Not written here, and the plan says so: the link on the RESQML side
+# (`WellboreFeature.WitsmlWellbore`,
+# `WellboreTrajectoryRepresentation.WitsmlTrajectory`), the markers, the
+# geology, the logs, the geometry and the completions, a geographic position.
+[[etape]]
+nom = "witsml-doublet"
+operation = "witsml-wells"
+entrees = [
+  { creneau = "frames", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-2", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-3", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-3-st1", type = "WellboreFrameRepresentation" },
+  { creneau = "projected", etape = "forages", type = "ProjectedCrs" },
+  { creneau = "target", etape = "colonne", type = "StratigraphicUnitInterpretation", titre = "Campanian" },
+]
+set = { existence = "planned", synthetic = true, country = "France", basin = "Paris Basin" }
+
+# `Well`, `Wellbore` and `Trajectory` of the BSS boreholes: real
+# (`existence = "actual"`), one `Well` per borehole - each has its own datum. A
+# frame that started below its datum would have neither TVD nor displacement and
+# would not be definitive: the plan would say so. The BRGM aliases that the
+# design wants on the `Well` are **not** written: what is known of a frame does
+# not carry the `Aliases` of its feature.
+[[etape]]
+nom = "witsml-forages"
+operation = "witsml-wells"
+entrees = [
+  { creneau = "frames", etape = "forages", type = "WellboreFrameRepresentation" },
+  { creneau = "projected", etape = "forages", type = "ProjectedCrs" },
+]
+set = { existence = "actual", country = "France", basin = "Paris Basin" }
+
+# `Facility` (the heat exchanger, `processing facility`), `ReportingEntity`
+# ×3 (GTH-1 producer, GTH-2 reinjector, GTH-3 observation),
+# `WellProductionParameters` ×2 (one per borehole that produces or injects, 12
+# periods each - `temps-mensuel`, 13 instants), `TimeSeriesData` ×3 (pressure
+# and temperature at the head of GTH-1, flow rate of GTH-2, qualified
+# `simulated`), `TimeSeriesStatistic` (the daily statistic of the flow rate of
+# GTH-2), `FluidSystem` (water of the water table, `unknown` - none of the six
+# hydrocarbon fluids fits - GOR declared as zero, not NaN).
+#
+# The instants are those of the `temps-mensuel` step (13 dates, hence 12
+# periods): the operation reads no package, so they are **given again** here -
+# the series is named only in the activity (no PRODML field references it). The
+# flow rate, its decline, and the head pressures and temperatures are
+# **synthetic and declared as such** (synthetic data is declared as such):
+# plausible for a geothermal doublet on the Chalk water table (a few tens of
+# m³/h, below the de minimis thresholds), water at ~15-17 °C - to be sourced
+# (BRGM/SIGES Île-de-France). The fluid-rock organisation is not written by any
+# step yet: the plan says so rather than staying silent.
+[[etape]]
+nom = "prodml-doublet"
+operation = "prodml-doublet"
+entrees = [
+  { creneau = "producer", etape = "witsml-doublet", type = "Wellbore", titre = "GTH-1" },
+  { creneau = "injector", etape = "witsml-doublet", type = "Wellbore", titre = "GTH-2" },
+  { creneau = "observation", etape = "witsml-doublet", type = "Wellbore", titre = "GTH-3" },
+  { creneau = "series", etape = "temps-mensuel", type = "TimeSeries" },
+]
+set = { facility = "Lutetia - heat exchanger", fluid = "Lutetia - Craie aquifer water", standardConditions = "15 degC 1 atm", rate = 40.0, decline = 0.05, producerHeadTemperature = 16.5, producerHeadPressure = 3.2, assetIdentifier = "eml://lutetia.geosiris.com/well({wellbore})/wellbore(01)/wellhead", samplesFrom = "2025-06-02T00:00:00Z", sampleDays = 2, sampleStep = 60, times = ["2025-01-01T00:00:00Z", "2025-02-01T00:00:00Z", "2025-03-01T00:00:00Z", "2025-04-01T00:00:00Z", "2025-05-01T00:00:00Z", "2025-06-01T00:00:00Z", "2025-07-01T00:00:00Z", "2025-08-01T00:00:00Z", "2025-09-01T00:00:00Z", "2025-10-01T00:00:00Z", "2025-11-01T00:00:00Z", "2025-12-01T00:00:00Z", "2026-01-01T00:00:00Z"], source = "synthetic - rate and decline plausible for a geothermal doublet on a shallow aquifer (a few tens of m³/h, below the de minimis thresholds); GTH-1 head temperature and pressure of the order of the Chalk aquifer water (~15-17 °C); to be sourced (BRGM/SIGES Île-de-France)" }
+
+# ---------------------------------------------------------------------------
+# The rest of the PRODML of Lutetia - to be inserted into
+# this recipe right after the `prodml-doublet` step, whose
+# fluid system, facility and reporting entities these three steps take. And, in
+# the `projet` step (the last one), three more members:
+#   { creneau = "members", etape = "echantillon-gth-1" },
+#   { creneau = "members", etape = "fibre-gth-3" },
+#   { creneau = "members", etape = "reseau-doublet" },
+#
+# Not written, and why: `ProductionWellTests`, `FlowTestActivity` (injection) +
+# `ChannelSet`, `PressureTransientAnalysis`. The injectivity test is an
+# `InjectionFlowTest`, which has **no** global element in
+# FlowTestActivity.xsd v2.3 (only `FlowTestActivity`, l. 185, has one): a
+# conformant part is written `<prodml:FlowTestActivity xsi:type="prodml:InjectionFlowTest">`
+# - the writer does so (`TypeInfo::root_element`). What is missing is the
+# **operation**, and its measurements: the PRODML 2.3 usage guide (§13.6
+# p. 118) puts them in a **WITSML** `ChannelSet` - the WITSML log, not yet
+# written (see `logs-doublet`). `ProductionWellTests` (`FlowTestActivity`
+# 1..n) and `PressureTransientAnalysis` (`FlowTestActivity` 1..1) depend on it.
+# And `PressureTransientAnalysis` still waits for the grid.
+# ---------------------------------------------------------------------------
+
+# FluidSampleAcquisitionJob, FluidSampleContainer, FluidSample, WaterAnalysis,
+# FluidCharacterization: a water sample taken at the bottom of GTH-1, a
+# `DownholeSampleAcquisition` acquisition (`Wellbore` 1..1 → the WITSML
+# `Wellbore` of `witsml-doublet`; `FluidSystem` 1..1 → the one of
+# `prodml-doublet`), its analysis (`FluidSample` 1..1) and a characterisation
+# without EOS (water of the water table, without EOS; the "Fluid
+# Characterization Parameter Option" of the PRODML v2.3 usage guide, §11.1.6.3
+# p. 107). The rock-fluid unit is not written by any step: the plan says so.
+#
+# Everything is **synthetic and declared as such** (synthetic data is declared
+# as such):
+# - MD 280: 5 m above the bottom of GTH-1 (MD 285, ~197 m below ground, in the
+#   Chalk - step `gth-1`); on 12/03/2025, during production;
+# - the ions: an order of magnitude - fresh water, calcium
+#   bicarbonate, possible sulfates from Lutetian gypsum; mineralisation of the
+#   order of g/L (to be sourced, SIGES Seine-Normandie, sheet of the Chalk
+#   water table) - chosen to be **neutral**: the operation refuses an analysis
+#   whose charge balance exceeds 5 % (here ~1.3 %). Ba at trace level, sulfate
+#   being the limiting one. The hardness is **computed** from Ca and Mg, never
+#   declared alongside; TDS and salinity are not written: only
+#   an order of magnitude of the mineralisation is known;
+# - the water: that of pure water around 16 °C - 999 kg/m3, 1.11 mPa.s,
+#   4.6e-5 1/bar - textbook orders of magnitude, unsourced; 16.5 °C, the head
+#   temperature of GTH-1 in `prodml-doublet` ("~15-17 °C").
+[[etape]]
+nom = "echantillon-gth-1"
+operation = "fluid-sample"
+entrees = [
+  { creneau = "wellbore", etape = "witsml-doublet", type = "Wellbore", titre = "GTH-1" },
+  { creneau = "fluidSystem", etape = "prodml-doublet", type = "FluidSystem" },
+]
+set = { title = "GTH-1 - Craie water sample", sampledAt = "2025-03-12T09:00:00Z", duration = 1.0, sampleMd = 280.0, standardConditions = "15 degC 1 atm", components = ["Ca+2=150", "Mg+2=15", "Na+=25", "K+=4", "Ba+2=0.05", "HCO3-=330", "SO4-2=150", "Cl-=40"], waterDensity = 999.0, waterViscosity = 1.11, waterCompressibility = 4.6e-5, referenceTemperature = 16.5, source = "synthetic - fresh calcium bicarbonate water, sulfates of the Lutetian gypsum possible, mineralisation of the order of g/L (to be sourced, SIGES Seine-Normandie); concentrations chosen within that order of magnitude and electrically neutral; MD 280, 5 m above the bottom of GTH-1 (MD 285, in the Chalk); pure water around 16 °C (999 kg/m3, 1.11 mPa.s, 4.6e-5 1/bar), unsourced orders of magnitude" }
+
+# DtsInstalledSystem, FiberOpticalPath, DtsMeasurement - on GTH-3 (the
+# `FiberFacilityWell.Wellbore` 1..1 → the WITSML `Wellbore` of GTH-3). A fourth
+# object, the `DtsInstrumentBox`: the schema requires it
+# (`DtsInstalledSystem.InstrumentBox` 1..1; usage guide v2.3, §19.5 p. 162), the
+# design does not count it. The optical path is **one** segment of the length of
+# the fibre, terminated at the cable (§19.3 p. 154: "you can easily declare
+# this optical path to consist of 1 fiber segment"); the fibre starts at the
+# datum of GTH-3 and goes down the hole: optical distance = MD. 203 m: the MD of
+# the bottom of GTH-3 (vertical down to 200 m below ground - MD 203, step
+# `gth-3`). Installed on 01/01/2025, start of operation; the survey of
+# 02/06/2025, the day the head series begin.
+# **The survey is a header**, `EmptySetFlag` true: its traces would go into a
+# `ChannelSet` that no step writes - the dense profile of GTH-3 is on its RESQML
+# frame and in a WITSML `Log` whose `ChannelSet` is nested - which a reference
+# can name (`test-injectivite-gth-2` does so), but which holds a depth profile,
+# not the traces of the survey.
+[[etape]]
+nom = "fibre-gth-3"
+operation = "dts-installation"
+entrees = [ { creneau = "wellbore", etape = "witsml-doublet", type = "Wellbore", titre = "GTH-3" } ]
+set = { title = "GTH-3 - DTS", installedFrom = "2025-01-01T00:00:00Z", measuredAt = "2025-06-02T00:00:00Z", fiberLength = 203.0, source = "synthetic - DTS fibre of GTH-3; length = MD of the bottom of GTH-3 (203 m, step gth-3), the fibre starting at the datum; installed at the start of operation, read on the day of the wellhead series" }
+
+# Log + ChannelSet, InjectionFlowTest, ProductionWellTests - the injectivity
+# test of GTH-2, before commissioning (01/01/2025). Three design decisions: the
+# measurements are in a **WITSML** `ChannelSet` (PRODML v2.3 usage guide, §13.6
+# p. 118, not PRODML); `TimeChannel` is a channel of dates,
+# `TIME`; the values are **synthetic and sourced**. The test points to the
+# channel set nested in the `Log`; a reference to a nested object resolves to
+# the part that holds it (same decision).
+#
+# The values:
+# - the drain of GTH-2 is at ~145 m below its datum (vertical down to 30 m,
+#   then build-up to 90° at 15°/30 m, radius ~115 m - step `gth-2`); the law
+#   of `temperature-doublet` (12.5 °C at 20 m, 30 °C/km) gives ~16.3 °C there:
+#   the reservoir temperature;
+# - **the injectivity index is that of the Chalk of the grid** (it was lowered
+#   to match the grid's Chalk in Lutetia): 0.1 m³/h/bar, the order of
+#   magnitude of a steady-state radial flow,
+#   II = 2π·k·h / (μ·ln(re/rw)), with k = 5 mD and h = 95 m
+#   (`permeabilite-grille`, `h7`), μ = 1.3 mPa·s (water at ~10 °C),
+#   ln(re/rw) ≈ 8.5 - i.e. ~0.096. It used to be 10, a hundred times what the
+#   grid allows;
+# - three steps of 1, 2 and 3 m³/h, two hours each, one sample every 10 min: at
+#   this index, an overpressure of 10 to 30 bar. The 20-60 m³/h used before
+#   would have required 200 to 600 - which leaves the 40 m³/h of
+#   `prodml-doublet` out of reach of a 5 mD chalk, and this is recorded as an
+#   open point of the Lutetia model;
+# - static pressure 12 bar, response in 20 min; reinjected water at 10 °C, the
+#   bottom approaching it in 12 h: **unsourced** orders of magnitude - to be
+#   sourced.
+[[etape]]
+nom = "test-injectivite-gth-2"
+operation = "injection-test"
+entrees = [ { creneau = "wellbore", etape = "witsml-doublet", type = "Wellbore", titre = "GTH-2" } ]
+set = { title = "GTH-2 - injection test", start = "2024-12-10T08:00:00Z", steps = [1.0, 2.0, 3.0], stepHours = 2.0, sampleMinutes = 10, staticPressure = 12.0, injectivity = 0.1, responseMinutes = 20.0, reservoirTemperature = 16.3, injectionTemperature = 10.0, coolingHours = 12.0, nominalPeriod = "day", standardConditions = "15 degC 1 atm", loggingCompany = { etape = "etude", type = "BusinessAssociate" }, source = "synthetic - step-rate injectivity test of GTH-2 before commissioning; reservoir temperature from the law of temperature-doublet at ~145 m (12.5 °C at 20 m, 30 °C/km); injectivity index 0.1 m3/h/bar, that of a radial flow in the Chalk of the grid (k = 5 mD from permeabilite-grille, h = 95 m from h7, water at ~10 °C); steps of 1, 2 and 3 m3/h, 10 to 30 bar of overpressure; static pressure 12 bar, response in 20 min, reinjected water at 10 °C, cooling in 12 h: unsourced orders of magnitude, to be sourced" }
+
+# PressureTransientAnalysis: "the PTA that cites the grid" - the RESQML ↔ PRODML
+# common thread. Homogeneous, numerical because permeability and porosity are on
+# the grid: kx of `permeabilite-grille` and `porosite-grille`. The analysed
+# test is the injection flow test, its `step-rate` period
+# (`injection_test::TEST_PERIOD`) - given, not read: an object of the bag is a
+# reference; `tests/lutetia.rs` checks that it exists.
+#
+# The constants are **those of the grid**, so that the PTA and the grid
+# properties say the same thing: k = 5 mD and φ = 0.35 (the Chalk of
+# `permeabilite-grille` and `porosite-grille`), h = 95 m (H6-H7, the law of
+# `h7`), Pi = 12 bar (the static pressure of the test). The injectivity index
+# of the test was brought down to that of the grid (0.1 m³/h/bar), so the PTA,
+# the grid properties and the injection test say the same thing about the
+# Chalk.
+[[etape]]
+nom = "pta-gth-2"
+operation = "pressure-transient-analysis"
+entrees = [
+  { creneau = "test", etape = "test-injectivite-gth-2", type = "InjectionFlowTest" },
+  { creneau = "permeabilityArray", etape = "permeabilite-grille", type = "ContinuousProperty", titre = "Ypresian-Chalk grid - permeability (kx)" },
+  { creneau = "porosityArray", etape = "porosite-grille", type = "ContinuousProperty" },
+]
+set = { title = "GTH-2 - injection test analysis", testPeriod = "step-rate", permeability = 5.0, thickness = 95.0, porosity = 0.35, initialPressure = 12.0, source = "synthetic - homogeneous reservoir: k and φ of the Chalk from `permeabilite-grille` and `porosite-grille`, h the H6-H7 thickness from `h7` (95 m), Pi the static pressure of `test-injectivite-gth-2`; unsourced orders of magnitude, to be sourced" }
+
+# ProductFlowModel: "producer → exchanger → reinjector", three units in flow
+# order (the slot is ordered: the direction of the water is in none of the
+# objects). The links are **names** - each unit carries the title of the
+# object: the `ReportingEntity` of GTH-1, the `Facility`, the `ReportingEntity`
+# of GTH-2 -, and the activity references the objects themselves. Nothing
+# numerical: the diagram of the loop.
+[[etape]]
+nom = "reseau-doublet"
+operation = "product-flow-model"
+entrees = [
+  { creneau = "units", etape = "prodml-doublet", type = "ReportingEntity", titre = "GTH-1" },
+  { creneau = "units", etape = "prodml-doublet", type = "Facility" },
+  { creneau = "units", etape = "prodml-doublet", type = "ReportingEntity", titre = "GTH-2" },
+]
+set = { title = "Lutetia - doublet loop", source = "synthetic - the doublet loop, producer → exchanger → reinjector" }
+
+# The WITSML side of the temperature and the hydrostatic pressure of the
+# doublet: one Log per borehole, its ChannelSet indexed by MD, one Channel per
+# RESQML property of the `temperature-doublet` and `pression-doublet` steps -
+# the same three frames as `witsml-doublet`, hence the same Wellbore as the one
+# each of them references there (recomputed from the interpretation, never
+# copied). This is neither the GR/resistivity/sonic/neutron log of GTH-1 (from
+# the lithology) nor the bottom-hole pressure and temperature log during the
+# test of GTH-2 (indexed by date): these two logs remain to be written once the
+# stage and the test have been reread.
+#
+# `synthetic = true`: the values come from a law, not from a measurement - the
+# same mark that `well-logs` put on the RESQML side, carried over to the WITSML
+# side (synthetic data is declared as such). `loggingCompany` (WITSML TRG v2.1
+# p. 138: Channel/LoggingCompany is 1..1): the author of the model, step
+# `etude` - the one who chose the law, not the BRGM, which did not measure it.
+[[etape]]
+nom = "logs-doublet"
+operation = "witsml-logs"
+entrees = [
+  { creneau = "frames", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-2", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-3", type = "WellboreFrameRepresentation" },
+  { creneau = "properties", etape = "temperature-doublet", type = "ContinuousProperty" },
+  { creneau = "properties", etape = "pression-doublet", type = "ContinuousProperty" },
+]
+set = { synthetic = true, loggingCompany = { etape = "etude", type = "BusinessAssociate" } }
+
+# The same channels as `logs-doublet`, their rows in the `.h5`: the "Data" of
+# the "ChannelData" carries the path of a dataset in the h5, and an example like
+# this one is needed in Lutetia to test it. **An extension beyond WITSML 2.1**
+# (described in the design note on WITSML channels in HDF5): `FileUri` names
+# Lutetia.h5, `Data` the path of the `[rows, 1 + channels]` dataset. Titles
+# "… - Log (HDF5)", distinct uuids: the two forms coexist.
+[[etape]]
+nom = "logs-doublet-h5"
+operation = "witsml-logs"
+entrees = [
+  { creneau = "frames", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-2", type = "WellboreFrameRepresentation" },
+  { creneau = "frames", etape = "gth-3", type = "WellboreFrameRepresentation" },
+  { creneau = "properties", etape = "temperature-doublet", type = "ContinuousProperty" },
+  { creneau = "properties", etape = "pression-doublet", type = "ContinuousProperty" },
+]
+set = { synthetic = true, loggingCompany = { etape = "etude", type = "BusinessAssociate" }, channelDataFile = "Lutetia.h5" }
+
+# ---------------------------------------------------------------------------
+# Step 7 - the structural framework: the faults and the two organisations
+# ---------------------------------------------------------------------------
+
+# The four faults are **all synthetic and declared as such**: no source places
+# any under the Louvre. Each carries `synthetic = true` and its source in
+# `Citation/Description`, on the feature, the interpretation and each
+# representation (synthetic data and its source are declared as such). They are
+# written **in the frame of the boreholes** (NGF elevation) - that of the ground
+# and the wells (see `gth-1`) - and stay within the first 200 metres (design
+# decision): tops at 30 m NGF, below the ground of the area of interest; bases
+# at −150 m NGF, less than 200 m below a ground that rises to 47.32 m at most.
+# The throws, dips and azimuths are **plausible and declared synthetic** -
+# "metric to decametric throws, at the scale of 200 m".
+#
+# **None is dated here.** F1 is meant to be dated (`HasOccurredDuring`), but an
+# interval between genetic boundaries names two horizon interpretations
+# (`GeneticBoundaryBasedTimeInterval`, inputs `chronoBottom` and `chronoTop`),
+# H1…H7 await the reread of the stages, and nothing says which horizon
+# seals F1. When they exist: `chronoBottom` → H3 (the youngest one it cuts),
+# `chronoTop` → the horizon that seals it (to be decided).
+
+# F1, **normal** fault, `IsListric` = false (present as soon as the single set
+# is normal), not sealed. Strike N30°E: the azimuth of the grid, "aligned with
+# F1" (step `repere-grille`); dip 65° towards 120° (ESE). It passes through
+# (651 350, 6 861 145) at −97 m NGF, where the drain of GTH-2 has landed: "drain
+# towards the W, **crosses F1**" (step `gth-2`: landing ~142 m below ground,
+# drain to X ~651 230). Seven sticks every 100 m along the strike, from
+# south-west to north-east ("every ~100 m"), three points each (30, −60,
+# −150 m NGF), coordinates to the centimetre. "F1 in two patches": the empty
+# entry cuts the strip after the fourth stick, repeated on both sides - the
+# common edge, written once among the sticks (`interpretation line`).
+[[etape]]
+nom = "f1"
+operation = "fault-from-sticks"
+
+[etape.set]
+crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }
+title = "F1"
+sticks = [
+  "651283.71 6861148.63 30; 651320.06 6861127.65 -60; 651356.4 6861106.66 -150",
+  "651333.71 6861235.23 30; 651370.06 6861214.25 -60; 651406.4 6861193.26 -150",
+  "651383.71 6861321.83 30; 651420.06 6861300.85 -60; 651456.4 6861279.87 -150",
+  "651433.71 6861408.44 30; 651470.06 6861387.45 -60; 651506.4 6861366.47 -150",
+  "",
+  "651433.71 6861408.44 30; 651470.06 6861387.45 -60; 651506.4 6861366.47 -150",
+  "651483.71 6861495.04 30; 651520.06 6861474.06 -60; 651556.4 6861453.07 -150",
+  "651533.71 6861581.64 30; 651570.06 6861560.66 -60; 651606.4 6861539.67 -150",
+  "651583.71 6861668.25 30; 651620.06 6861647.26 -60; 651656.4 6861626.28 -150",
+]
+throw = ["normal"]
+listric = false
+sealed = false
+maximumThrow = 15.0
+meanDip = 65.0
+meanAzimuth = 120.0
+synthetic = true
+source = "synthetic - all faults are synthetic and declared as such (no source places a fault under the Louvre); direction N30°E, that of the grid frame `repere-grille`; dip 65° towards 120° and maximum throw 15 m, plausible at the scale of 200 m; drawn to cross the drain of GTH-2; to be sourced (BRGM/SIGES Île-de-France)"
+
+# F2, **listric** normal fault (`IsListric` = true), **sealed** by the erosion
+# of the base of the Tertiary: "F2 is stopped by H6, the erosion of the base of
+# the Tertiary: older than the Tertiary". It therefore does not rise above the
+# top of the Chalk (−27.7 to −48.3 m NGF measured): tops at −50 m NGF, bases at
+# −150 m, across H7, which it cuts. North-west of the area of interest, strike
+# N75°E, dip towards 165° **that flattens with depth** - 70°, 60°, 50° between
+# −50, −80, −110 and −150 m: which makes a listric fault. Five sticks every
+# 100 m, four points each. The declared "representative" dip is 60°; the one the
+# surface measures is stated by the plan, alongside (both readings, never one in
+# place of the other).
+[[etape]]
+nom = "f2"
+operation = "fault-from-sticks"
+
+[etape.set]
+crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }
+title = "F2"
+sticks = [
+  "650806.81 6861948.24 -50; 650809.64 6861937.69 -80; 650814.12 6861920.96 -110; 650822.81 6861888.54 -150",
+  "650903.41 6861974.12 -50; 650906.23 6861963.57 -80; 650910.72 6861946.84 -110; 650919.4 6861914.42 -150",
+  "651000 6862000 -50; 651002.83 6861989.45 -80; 651007.31 6861972.72 -110; 651016 6861940.3 -150",
+  "651096.59 6862025.88 -50; 651099.42 6862015.33 -80; 651103.9 6861998.6 -110; 651112.59 6861966.18 -150",
+  "651193.19 6862051.76 -50; 651196.01 6862041.22 -80; 651200.49 6862024.49 -110; 651209.18 6861992.07 -150",
+]
+throw = ["normal"]
+listric = true
+sealed = true
+maximumThrow = 8.0
+meanDip = 60.0
+meanAzimuth = 165.0
+synthetic = true
+source = "synthetic - F2 normal, listric, sealed by the H6 erosion; top below the measured top of the Chalk (−27.7 to −48.3 m NGF); direction N75°E, dip 70° then 60° then 50° towards 165°, maximum throw 8 m, plausible at the scale of 200 m; to be sourced"
+
+# F3, **normal and strike-slip**, **vertical**: two sets of throw, hence **no**
+# `IsListric` (a fault with two sets has none); a single `FaultThrow` naming
+# both, since nothing says which came first. "Plane warped by dip and
+# azimuth": a vertical plane drawn from a curved trace, north to south, which
+# cuts the F1 trace at the top near (651 440, 6 861 420) - the contact
+# "F3 {east} crosses F1 {west}". The ~N-S direction is what gives F3 **east and
+# west** sides, as that contact is written; ✘ the contact on H6 writes
+# "F3 {north}", which a vertical N-S fault does not have - the two statements contradict
+# each other, to be settled together with the H6 contact (which awaits it). The
+# sticks drawn from the plane are not written: only those of F1 and F2 are kept.
+[[etape]]
+nom = "f3"
+operation = "fault-from-sticks"
+
+[etape.set]
+crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }
+title = "F3"
+geometry = "plane"
+trace = "651460 6861700 30; 651440 6861420 30; 651465 6861200 30"
+dip = 90.0
+dipAzimuth = 90.0
+verticalExtent = 180.0
+throw = ["normal", "strike-slip"]
+sealed = false
+maximumThrow = 5.0
+meanDip = 90.0
+meanAzimuth = 90.0
+synthetic = true
+source = "synthetic - F3 normal and strike-slip, vertical, two movements; “plane warped by dip and azimuth”; curved N-S trace that cuts F1, from 30 to −150 m NGF; maximum throw 5 m, plausible at the scale of 200 m; to be sourced"
+
+# F4, **reverse**, sealed, dip 55°, of **scenario B only**. Its trace starts in
+# the vicinity of F1 (about 40 m east of the F1 trace at the top) and runs
+# south-east, and the plane dips **towards the NE**, away from F1:
+# "F4 {footwall} stops F1 {both}" (the contact that F4 carries). No
+# `IsListric`: a reverse fault does not carry one (Interpretations.xsd
+# l. 659-662) - the operation would refuse it by name, and that is exactly the
+# defect that F9 of the `[ERROR]` model carries on purpose, which is not
+# written by this step.
+[[etape]]
+nom = "f4"
+operation = "fault-from-sticks"
+
+[etape.set]
+crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }
+title = "F4"
+geometry = "plane"
+trace = "651560 6861560 30; 651705 6861430 30; 651850 6861300 30"
+dip = 55.0
+dipAzimuth = 42.0
+verticalExtent = 180.0
+throw = ["reverse"]
+sealed = true
+maximumThrow = 6.0
+meanDip = 55.0
+meanAzimuth = 42.0
+synthetic = true
+source = "synthetic - F4 reverse, sealed, of scenario B only, stopped against F1; dip plane 55° towards 42°, from 30 to −150 m NGF; maximum throw 6 m, plausible at the scale of 200 m; to be sourced"
+
+# The structural organisation of **scenario A, "ordered, dated"**. It
+# interprets **the `Model` "Lutetia"**: the rule for organisations specific to
+# Lutetia. It is named **by its title**: `earth-model` derives its uuid from
+# that title, so it is the same object, and the organisation may precede the
+# `modele` step that gathers it (`Structure`). `AscendingOrderingCriteria` =
+# age, youngest first.
+#
+# **Faults only, for now**: H1…H7 await the review of the stages (steps
+# `h4`…`h7` pending, H1…H3 without a step). In the order the contacts allow to
+# read: F3 cuts F1, F1 splits H3…H7, F2 is sealed by H6 - F3, F1, F2. When the
+# horizons play, they will enter at their age rank with the stage ranks
+# (`ranks = ["H6 = …"]`, except H4: absent), `BottomFrontier` → H7
+# (`creneau = "bottom"`), and the contacts of F1 on the horizons; the
+# organisation will then take another uuid - another snapshot, which `modele`
+# will name. The contact on the `With` of the first horizon is not written (its
+# `With` is contested; the reader ignores it).
+# `TopFrontier` → the ground (a `BoundaryFeatureInterpretation`);
+# `Sides` → the model frontier (the `CulturalFeature` "model frontier" of the
+# `bord` step).
+[[etape]]
+nom = "structure-a"
+operation = "structural-organisation"
+entrees = [
+  { creneau = "boundaries", etape = "f3", type = "FaultInterpretation" },
+  { creneau = "boundaries", etape = "f1", type = "FaultInterpretation" },
+  { creneau = "boundaries", etape = "f2", type = "FaultInterpretation" },
+  { creneau = "top", etape = "sol-collets", type = "BoundaryFeatureInterpretation" },
+  { creneau = "sides", etape = "bord", type = "CulturalFeature" },
+]
+set = { title = "Lutetia - scenario A, ordered and dated", ordering = "age", modelTitle = "Lutetia", contacts = ["F3 {east} crosses F1 {west}"] }
+
+# **Scenario B, "unordered"**: the same boundaries and F4, **without
+# `StratigraphicRank`** (none in B).
+# `UnorderedFaultCollection` does not exist in the final RESQML 2.2: the
+# faults go into the ordered list, here in the order of their names, which
+# states no age; the criterion, mandatory (1..1), is age, and will only rank
+# the horizons when they enter. Contact: "F4 {footwall} stops F1 {both}"
+# (✘ earlier `{footwall, conformable}`: a fault takes a side, not a mode); the
+# contact "F4 splits H3" awaits H3.
+# The contacts "F1 splits H6" and "F1 splits H7" **will also enter here** - as
+# decided on 27/09 ("Also in scenario B") - when H6 and H7 play,
+# at the same time as in `structure-a`.
+[[etape]]
+nom = "structure-b"
+operation = "structural-organisation"
+entrees = [
+  { creneau = "boundaries", etape = "f1", type = "FaultInterpretation" },
+  { creneau = "boundaries", etape = "f2", type = "FaultInterpretation" },
+  { creneau = "boundaries", etape = "f3", type = "FaultInterpretation" },
+  { creneau = "boundaries", etape = "f4", type = "FaultInterpretation" },
+  { creneau = "top", etape = "sol-collets", type = "BoundaryFeatureInterpretation" },
+  { creneau = "sides", etape = "bord", type = "CulturalFeature" },
+]
+set = { title = "Lutetia - scenario B, unordered", ordering = "age", modelTitle = "Lutetia", contacts = ["F4 {footwall} stops F1 {both}"] }
+
+# Lutetia - step 7, the continuation of the "faults" sub-workflow:
+# the offset of lips (`fault-throw`) and the surface framework
+# (`surface-framework`, the "frameworks" of the plan).
+#
+# Three steps, to be inserted in this recipe **after the
+# `structure-b` step** (hence after `f1`…`f4`) and **before `puits-du-modele`**:
+# `h6-rejet` and `h7-rejet` take the surfaces of F1 and F2 (`f1`, `f2`),
+# `cadre-b` takes the organisation that `structure-b` writes. None is used by
+# a step higher up; `modele` need not name them (an
+# `EarthModelInterpretation` names organisations, not their representations).
+#
+# What plays today: `cadre-b`. `h6-rejet` and `h7-rejet` await the H6 and H7
+# horizons, which await the review of the stages.
+
+# ---------------------------------------------------------------------------
+# Step 7 (continued) - the offset of lips
+# ---------------------------------------------------------------------------
+
+# H6 **torn by F1** (contact "F1 {hanging wall} splits H6 {both}", the verb of
+# the RESQML Technical Reference Guide, *"the fault has opened a pair of fault
+# lips in a horizon"*, §6.12 p. 176). `fault-throw` takes the nodes of the H6
+# grid (step `h6`), triangulates them with the F1 trace as a constraint - the
+# trace is the intersection of the F1 surface with H6, computed, not
+# written -, duplicates the nodes of the trace, declares the cut edges as
+# `SplitEdgePatch` (one per lip: Structural.xsd l. 206-219 does not say what
+# an `EdgePatch` groups, this is the operation's reading), lowers the hanging
+# wall and writes the two lips (`LineRole` `contact`).
+#
+# **A new interpretation** of the H6 feature: *"the front is not written - the
+# `Activity` names it"*; the feature is the one that `contacts` writes under
+# the title of the point cloud ("Campanien - top"), the one that the `h6` grid
+# represents.
+#
+# The hanging wall is the side where F1 **dips**, measured on its surface
+# (≈ 65° towards 120°, `f1`) - never taken from the declared `MeanAzimuth`.
+# Throw **synthetic and declared**: 15 m at most, the `MaximumThrow` of F1
+# (`f1`), restated here - the fault interpretation is not read by the
+# operation; parabolic law 4 s (1 − s) along the trace, zero at the ends
+# (*"a bell-shaped law, synthetic and declared"*); the hanging wall dragged
+# over 150 m on either side of the trace, ten times the throw; and the
+# horizontal throw (`heave`, *"an optional horizontal throw"*): the hanging
+# wall lip slides along the measured dip instead of dropping vertically,
+# which keeps it on the fault.
+#
+# **F3 is not there**, although the model plan has H6 split by F1 and F3: F3
+# is vertical (`f3`, dip 90°) - a vertical fault has no hanging wall, and the
+# operation refuses it by name - and the contact on H6 gives it a "north" side
+# that its N-S trace does not have (see `f3`). The side that drops is left
+# open; F3 will then enter here, after F1.
+[[etape]]
+nom = "h6-rejet"
+operation = "fault-throw"
+entrees = [
+  { creneau = "horizon", etape = "h6", type = "Grid2dRepresentation" },
+  { creneau = "faults", etape = "f1", type = "TriangulatedSetRepresentation" },
+  { creneau = "feature", etape = "contacts", type = "BoundaryFeature", titre = "Campanian - top" },
+]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "H6 - top of the Chalk, faulted", maximumThrow = [15.0], throw = ["normal"], profile = "parabolic", reach = 150.0, heave = true, synthetic = true, source = "synthetic - “a throw law (maximum at the centre, nil at the ends - a bell law, synthetic and declared) and an optional horizontal throw”; maximum throw 15 m, that of F1, dragged over 150 m; to be sourced" }
+
+# H7 **torn by F1 and F2** (contacts "F1 {footwall} splits H7 {both}" and
+# "F2 {hanging wall} splits H7 {older}"). H7 is the base of the grid and the
+# only horizon that F2 splits: F2 is sealed by H6, it does not rise up to it
+# (−50 m NGF at the top, `f2`). The two traces do not cross (F2 in the
+# north-west of the extent, F1 in the centre) - a crossing would be refused by
+# name. The hanging wall of each is the side where it dips, measured; F2 is
+# listric, and its **measured** dip (mean, weighted by area) is the one the
+# lip follows with `heave` - the F2 lip is therefore on the fault only on
+# average, and the plan says so. Throws of F1 and F2 (15 and 8 m), in the
+# order of the inputs; same law, same drag as H6. New interpretation of the
+# feature that `h7` creates.
+[[etape]]
+nom = "h7-rejet"
+operation = "fault-throw"
+entrees = [
+  { creneau = "horizon", etape = "h7", type = "Grid2dRepresentation" },
+  { creneau = "faults", etape = "f1", type = "TriangulatedSetRepresentation" },
+  { creneau = "faults", etape = "f2", type = "TriangulatedSetRepresentation" },
+  { creneau = "feature", etape = "h7", type = "BoundaryFeature" },
+]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "H7 - top of the Santonian, faulted", maximumThrow = [15.0, 8.0], throw = ["normal", "normal"], profile = "parabolic", reach = 150.0, heave = true, synthetic = true, source = "synthetic - “a throw law (maximum at the centre, nil at the ends - a bell law, synthetic and declared) and an optional horizontal throw”; maximum throws of 15 and 8 m, those of F1 and F2, dragged over 150 m; to be sourced" }
+
+# ---------------------------------------------------------------------------
+# Step 7 (continued) - the surface frameworks
+# ---------------------------------------------------------------------------
+
+# The **non-sealed** framework of scenario B: a
+# `NonSealedSurfaceFrameworkRepresentation` that represents organisation B
+# (step `structure-b`) - *"Structural organization interpretation
+# represented by a non-sealed surface framework"* (RESQML usage guide 2.2,
+# §7.3.1.2.2 p. 98) - and gathers, in an order that is a statement (a contact
+# patch designates its surface by its rank in this list), the surfaces of the
+# four faults, F1…F4, in the order of their names like the list of
+# `structure-b`.
+#
+# **Faults only for now, without contacts**: the non-sealed framework is made
+# to gather *"step by step […] even if they are not all totally
+# topologically consistent"* (§8.3.2.1 p. 119-120). When H6 and H7 play, the
+# torn surfaces (`h6-rejet`, `h7-rejet`) and their lips (`creneau = "lips"`)
+# will enter, with for each contact the position of its interpretation in the
+# organisation (`contactIndex`) - it will be another snapshot, another uuid.
+# The design puts in this framework the geometry of the lips (those of F1 on H6
+# and H7); a contact `Index` designates a position in the organisation that
+# the framework represents (Structural.xsd l. 119-124), so B must declare the
+# contacts of F1 on H6 and H7 - **settled on 27/09**: they enter, and the
+# framework will point to their rank in `structure-b`.
+#
+# The **sealed** framework of scenario A has **no step**: a sealed contact
+# states its collocated patches (*"When several nodes are topologically
+# associated, they have absolutely the same geometry"*, RESQML usage guide
+# 2.2 §8.3.2.2 p. 120-121), and no fault surface written here has a node on
+# the cut lines of the horizons; the two lips of a torn horizon are not
+# collocated either (they were before the throw: this is a *previous
+# collocation*). Writing `collocation` (`SealedContact` `collocation`, patches
+# ≥ 2) would assert a false fact on every node. A fault remeshed along its cut
+# lines will be needed, and the question settled.
+[[etape]]
+nom = "cadre-b"
+operation = "surface-framework"
+entrees = [
+  { creneau = "organisation", etape = "structure-b", type = "StructuralOrganizationInterpretation" },
+  { creneau = "representations", etape = "f1", type = "TriangulatedSetRepresentation" },
+  { creneau = "representations", etape = "f2", type = "TriangulatedSetRepresentation" },
+  { creneau = "representations", etape = "f3", type = "TriangulatedSetRepresentation" },
+  { creneau = "representations", etape = "f4", type = "TriangulatedSetRepresentation" },
+]
+set = { title = "Lutetia - scenario B, non-sealed framework" }
+
+# ---------------------------------------------------------------------------
+# The model - after the wells: the set holds them all
+# ---------------------------------------------------------------------------
+
+# `DataobjectCollection` "Lutetia - model wells": the
+# `WellboreInterpretation`s of the boreholes, and only those - RESQML TRG 2.2
+# §6.19 p. 187, *"the DataobjectCollection must only contain
+# WellboreInterpretation"*. `HomogeneousDatatype` is a boolean (Collection.xsd
+# l. 66-70): the type is not written, it is checked on the members
+# (`homogeneous`). One set of associations per collection: the schema forbids a
+# collection twice *in the same* set, not one set per collection.
+[[etape]]
+nom = "puits-du-modele"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreInterpretation" },
+  # The six boreholes with a log sheet only, which `etages` creates from the table.
+  { creneau = "members", etape = "etages", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "gth-1", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "gth-2", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "gth-3", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "gth-3-st1", type = "WellboreInterpretation" },
+]
+set = { title = "Lutetia - model wells", kind = "folder", homogeneous = true }
+
+# `DataobjectCollection` "Lutetia - puits verticaux" - the demo should show a
+# sub-collection gathering the vertical wells, then give them a head-of-well
+# image, to demonstrate the two aspects: a collection, which lets something be
+# applied to a set, and attachments. A set defined by a **shape**, not by a
+# type of borehole: the BSS boreholes (`forages`, `etages`) and GTH-3, which
+# goes straight down (`hold to 203`) - a BSS borehole is therefore in the
+# model-wells collection **and** in this one. The members are
+# `WellboreInterpretation`s, like in the model-wells collection: the image is
+# found from the drawn object by going back up to its interpretation.
+# `Kind` `folder`: a `project` collection is not followed by inheritance.
+[[etape]]
+nom = "puits-verticaux"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "etages", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "gth-3", type = "WellboreInterpretation" },
+]
+set = { title = "Lutetia - vertical wells", kind = "folder", homogeneous = true }
+
+# `eml23.Attachment` - **the head image of each vertical well,
+# set once on the set**: the *part-address* form (`Content` empty,
+# `ContentUri` = `media/symbols/puits-vertical.png`), on the vertical-wells
+# collection, `Category` "HeadImage". The PNG is **a part of the zip**, typed
+# `image/png` in `[Content_Types].xml` and linked to the `Attachment` by
+# `destinationMedia` (EPC v1.0 §3.4.2 pp. 15-16); without it the attachments
+# would point to no image file in the EPC. No `Md`: the part
+# speaks of the whole object, and it is the category that says it goes at the
+# head - the style chooses what it draws by `match`. What the tool does with
+# it is **its convention**, stated wherever it acts: a member lists it
+# *inherited from the collection "Lutetia - vertical wells"*, never an image
+# without provenance. The pictogram is synthetic, drawn for Lutetia
+# (`donnees/media/symbols/`): official symbols have their reuse conditions.
+[[etape]]
+nom = "tete-puits-verticaux"
+operation = "attach"
+entrees = [
+  { creneau = "target", etape = "puits-verticaux", type = "DataobjectCollection" },
+  { creneau = "file", fichier = "donnees/media/symbols/puits-vertical.png" },
+]
+set = { form = "part-address", path = "media/symbols/puits-vertical.png", category = "HeadImage", contentType = "image/png", fileName = "puits-vertical.png", title = "Lutetia - head image of vertical wells" }
+
+# `eml23.Attachment` - **`Md` = 0**, on the frame of GTH-1, one of the wells of
+# the doublet: `md = 0` states that the image goes at the head of the borehole.
+# The image is at the **MD datum** - the rotary table
+# (`datumKind = "kelly bushing"`), not necessarily the ground -, and the part
+# says so as such. This is the form that carries a depth, which the media part
+# cannot express.
+[[etape]]
+nom = "tete-gth-1"
+operation = "attach"
+entrees = [
+  { creneau = "target", etape = "gth-1", type = "WellboreFrameRepresentation" },
+  { creneau = "file", fichier = "donnees/media/symbols/doublet.png" },
+]
+set = { form = "part-address", path = "media/symbols/doublet.png", md = 0.0, mdUom = "m", category = "HeadImage", contentType = "image/png", fileName = "doublet.png", title = "GTH-1 - head image at the datum" }
+
+# The `Model` "Lutetia" and its `EarthModelInterpretation`: the
+# only object that interprets a `Model` by naming what it contains. Today
+# the column and the wells (the model-wells collection, BSS boreholes and
+# doublet); the structural organisations (scenarios A and B), the fluid ones
+# and the occurrences will enter when their steps exist - another list is
+# another snapshot of the same model (the uuid of the `Model` comes from its
+# title, that of the interpretation from what it references).
+[[etape]]
+nom = "modele"
+operation = "earth-model"
+entrees = [
+  { creneau = "column", etape = "colonne", type = "StratigraphicColumn" },
+  { creneau = "structures", etape = "structure-a", type = "StructuralOrganizationInterpretation" },
+  { creneau = "structures", etape = "structure-b", type = "StructuralOrganizationInterpretation" },
+  { creneau = "wellboreSets", etape = "puits-du-modele", type = "DataobjectCollection" },
+]
+set = { title = "Lutetia", interpretationTitle = "Lutetia" }
+
+# What the grids and the reservoir represent - some RESQML objects have no
+# interpretation (the ijkGrids notably), so the grids are given one here. The
+# faulted and local grids are written before the model (an input never names a
+# later step), so their `RepresentedObject` is set here, once the earth model
+# interpretation is written: the "Lutetia" earth model interpretation, like
+# the faulted grid. The reservoir (K 3-9, the seven layers of Chalk)
+# represents the Campanian, the unit that the grid itself gives to these
+# layers (`IntervalStratigraphicUnits`) - a subrepresentation may represent
+# another interpretation than its support (RESQML TRG 2.2 §8.9).
+[[etape]]
+nom = "grille-represente"
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "grille", type = "IjkGridRepresentation" } ]
+set = { fields = [], reference = { etape = "modele", type = "EarthModelInterpretation" }, referenceAt = "RepresentedObject" }
+
+[[etape]]
+nom = "grille-locale-represente"
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "grille-locale", type = "IjkGridRepresentation" } ]
+set = { fields = [], reference = { etape = "modele", type = "EarthModelInterpretation" }, referenceAt = "RepresentedObject" }
+
+[[etape]]
+nom = "reservoir-represente"
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "reservoir", type = "SubRepresentation" } ]
+set = { fields = [], reference = { etape = "colonne", type = "StratigraphicUnitInterpretation", titre = "Campanian" }, referenceAt = "RepresentedObject" }
+
+# The faulted grid - the Lutetia ijkGrids were too regular: at least one
+# should be "cut" by the faults, perhaps a new one shifted down on one side,
+# with cells removed near one or two faults. The design already asked for
+# "21 duplicated along F1 (`ColumnLayerSplitCoordinateLines`)".
+#
+# The same grid as `grille` (same horizons H3…H7, `layers = [2, 1, 0, 7]`,
+# the K gap of the Marnes de Meudon), **cut by F1 and F2**: pillars
+# duplicated where a fault passes between two columns (TRG 2.2 §5.17 p. 111),
+# the hanging wall of each fault lowered by its throw, by **the law of
+# `h6-rejet` and `h7-rejet`** - 15 and 8 m at most, parabolic, dragged over
+# 150 m -, so that the grid and the torn horizons state the same throw.
+# The pillars stay vertical: a fault is there a vertical staircase along the
+# faces of the columns, placed by its trace in the middle of the heights it
+# shares with the grid (the plan says so, and the height is in the activity,
+# `traceLevel`). F2, sealed under H6 (−50 m NGF at the top), only moves the
+# nodes it reaches: the Chalk, not the Ypresian.
+#
+# **Cells removed along F2** (`deadColumns = [0, 1]`): the row of columns of
+# the F2 hanging wall that touches the fault, in the Chalk layers
+# (`deadLayers`, K 3-9 counted from 0, those that F2 cuts) -
+# `CellGeometryIsDefined` false, not drawn. F1 keeps all its cells: it is
+# along it that the throw shows, where the GTH-2 drain crosses it.
+#
+# **It represents the model** - `interpretation` → the "Lutetia"
+# `EarthModelInterpretation`: *"the 3D grid representation, which represents Peter's
+# earth model interpretation"* (RESQML usage guide 2.2 §7.3.2.2 p. 104).
+# Hence its place **after `modele`**. The operation refuses a faulted grid that
+# represents nothing: no representation without an interpretation.
+[[etape]]
+nom = "grille-faillee"
+operation = "faulted-ijk-grid"
+entrees = [
+  { creneau = "horizons", etape = "h3", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h4", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h5", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h6", type = "Grid2dRepresentation" },
+  { creneau = "horizons", etape = "h7", type = "Grid2dRepresentation" },
+  { creneau = "faults", etape = "f1", type = "TriangulatedSetRepresentation" },
+  { creneau = "faults", etape = "f2", type = "TriangulatedSetRepresentation" },
+]
+set = { layers = [2, 1, 0, 7], axis = "elevation", title = "Ypresian-Chalk grid, faulted", interpretation = { etape = "modele", type = "EarthModelInterpretation" }, maximumThrow = [15.0, 8.0], throw = ["normal", "normal"], profile = "parabolic", reach = 150.0, deadColumns = [0, 1], deadLayers = [3, 4, 5, 6, 7, 8, 9], synthetic = true, source = "synthetic - the grid cut by F1 and F2, maximum throws of 15 and 8 m, parabolic law dragged over 150 m, the one of h6-rejet and h7-rejet; cells removed along F2 in the Chalk, on request; to be sourced" }
+
+# The `media/README.md` part - the package's README, as a part of the package
+# and not an object: `text/markdown` (RFC 7763) in `[Content_Types].xml`,
+# related to the model it describes (the `Model`) by `destinationMedia` from
+# the `Model`'s `.rels` and `sourceMedia` back (EPC v1.0 §3.4.2 pp. 15-16). The
+# type is **stated**: `media` never guesses one from a file's name (types come
+# from the exporter, not from a second table).
+#
+# To be placed **after** the step `modele`, which writes the `Model` - an entry
+# naming a later step is refused before anything runs. The file is read as
+# bytes because the slot `file` takes a document; the CLI's reader goes through
+# its text for now, which a README is (a PDF would need `Reader::bytes` in the
+# CLI).
+[[etape]]
+nom = "lisez-moi"
+operation = "media"
+set = { path = "media/README.md", contentType = "text/markdown" }
+entrees = [
+  { creneau = "file", fichier = "donnees/media/README.md" },
+  { creneau = "shows", etape = "modele", type = "Model" },
+]
+
+# The `media/export/emprise.geojson` part - the outline written by the GeoJSON
+# exporter of `energyml-export`, in WGS 84 (RFC 7946; reprojected by
+# `energyml-proj` from the Lambert-93 the step `bord` wrote it in), and related
+# to that outline by `destinationMedia` / `sourceMedia` (EPC v1.0 §3.4.2
+# pp. 15-16). The content type is **the exporter's own** `mime()`,
+# `application/geo+json` - `export-media` has no setting to state another
+# (types come from the exporter, not from a second table). The part name is the
+# table's own, given; left out, it would be the object's title folded to a
+# file name. An export is derived: rewritten on every run, never edited by hand.
+[[etape]]
+nom = "export-emprise"
+operation = "export-media"
+set = { format = "geojson", path = "media/export/emprise.geojson" }
+entrees = [ { creneau = "shape", etape = "bord", type = "PolylineSetRepresentation" } ]
+
+# The `media/export/H3-toit-ypresien.obj` part - the OBJ export of H3's
+# triangulated surface, which `h3-triangulee` writes.
+[[etape]]
+nom = "export-h3"
+operation = "export-media"
+set = { format = "obj", path = "media/export/H3-toit-ypresien.obj" }
+entrees = [ { creneau = "shape", etape = "h3-triangulee", type = "TriangulatedSetRepresentation" } ]
+
+# The `media/export/grille-craie.vtu` part - the VTK XML export of the chalk
+# grid (`application/xml`, the VTK exporter's word: no VTK type is registered
+# at the IANA).
+[[etape]]
+nom = "export-grille"
+operation = "export-media"
+set = { format = "vtu", path = "media/export/grille-craie.vtu" }
+entrees = [ { creneau = "shape", etape = "grille", type = "IjkGridRepresentation" } ]
+
+# `GraphicalInformationSet` « Lutetia - couleurs »: the colours the package
+# **chooses**, through `graphical-information`. The FIRP cascade - the same
+# colour on the feature, the interpretation and the representation of H3 - is
+# laid on **the ground** while waiting for H3, which is not produced yet: it is
+# the only horizon whose three levels exist today - the BoundaryFeature and its
+# interpretation "the ground" (`sol-collets`), and its grid (`sol`). One
+# `DefaultGraphicalInformation` per object (the "×3"), the same colour, in the
+# order feature → interpretation → representation.
+#
+# The colours of the column (already written by the GeolTs import) are **not**
+# taken over: `stratigraphy-from-geolts` writes them into a set of its own,
+# whose uuid comes from the selection - those of the registry, not a choice of
+# the package; copying them would make two sources for one colour. The "single
+# GraphicalInformationSet" therefore becomes two.
+#
+# Not written here: the `ColorInformation` objects wait for the grid properties
+# (steps 8 and 9) and their maps; `AlphaInformation`, `SizeInformation`,
+# `AnnotationInformation` and `ContourLineSetInformation` have no writer
+# anywhere in the repository. When the step runs, add it to the project
+# (`{ creneau = "members", etape = "couleurs" }`).
+[[etape]]
+nom = "couleurs"
+operation = "graphical-information"
+entrees = [
+  { creneau = "targets", etape = "sol-collets", type = "BoundaryFeature" },
+  { creneau = "targets", etape = "sol-collets", type = "BoundaryFeatureInterpretation" },
+  { creneau = "targets", etape = "sol", type = "Grid2dRepresentation" },
+]
+set = { title = "Lutetia - colors" }
+attente = "the model design decides no colour; the colour of the ground (and of H3) is to be decided, then written in `colours` (#rrggbb)"
+
+# What the operations could not do on the evening of 24/09 - H1 and H3 (contacts
+# **at a rank** of the column), H2 (which waits for them), and two surfaces
+# needing a change of frame - now has its steps, higher up, waiting for
+# `etages` like the rest of the horizons.
+
+# ---------------------------------------------------------------------------
+# The project - last: it gathers what the steps that ran have written
+# ---------------------------------------------------------------------------
+
+# An earth model made from a unit of the column - the Eocene, of which the
+# Lutetian of the model is a stage. What the page does at the "+" of a card of
+# the column view, played here through the same door: the `Model` named after
+# the unit, the column restricted to what the Eocene contains - its ranks taken
+# over when their units are exactly those, restricted otherwise, their number
+# kept -, a "TOP" and a "BOTTOM" per unit, their organisation by age, and the
+# `EarthModelInterpretation` by the writer of `earth-model`. A snapshot
+# (`mode = snapshot`, the default).
+[[etape]]
+nom = "modele-eocene"
+operation = "earth-model-from-stratigraphy"
+entrees = [ { creneau = "from", etape = "colonne", type = "StratigraphicUnitInterpretation", titre = "Eocene" } ]
+
+# Lutetia - the colour fallback demo, ready to be pasted into `recette.toml`.
+#
+# WHERE: after the step `modele-eocene` (it needs `forages`, `etages`,
+# `forages-etendus`, `modele`, `modele-eocene`) and BEFORE `projet`, so that the
+# project collection can hold what is written here. Then add to `projet` the
+# lines listed at the end of this file. The step `couleurs` (held) stays as it
+# is: this set is another one.
+#
+# Motivation: Lutetia has colours assigned to the units but no example
+# demonstrating the house rules of hierarchical fallback. A GraphicalInformationSet
+# should call a few objects, to show the hierarchical fallback possibilities
+# (first list the different possibilities, then see on which objects the
+# colouring can be done).
+#
+# Also: the different fallback cases are applied to different objects and not
+# all on the same one, otherwise they would not be directly visible. As there
+# are plenty of vertical boreholes, the cases are spread over different
+# boreholes, to see the different possibilities on one same type of object.
+#
+# So: ONE case per object, never two on the same one, and the cases are spread
+# over the vertical BSS boreholes of `forages`, each hole being one case. The
+# order they demonstrate is the order of the inheritance resolution (the
+# fallback ranks); the table - case, carrier, object that inherits, colour,
+# path - is the table of the Lutetia colour cases. A borehole is drawn by four
+# objects (the trajectory and the frame the BSS import wrote, and the two
+# `extend-boreholes` wrote); they all inherit by the same path, because they
+# share one interpretation and one feature, so the steps below hold or colour
+# all four.
+#
+# What is NOT touched, on purpose: the folders `Lutetia - model wells` and
+# `Lutetia - vertical wells` (they hold every borehole's interpretation, so a
+# colour on them would reach the witness too), the `Lutetia` project
+# collection (never followed), and the BRGM chart colours of the units.
+#
+# Colours (HSV hues are far apart so each case reads at a glance):
+#   rank 1   #e6194b red        rank 2   #f58231 orange     rank 2 bis #ffe119 yellow
+#   rank 3   #bfef45 lime       rank 4   #3cb44b green      rank 4 bis #42d4f4 cyan
+#   rank 5   #4363d8 blue       rank 5 collection #911eb4 purple
+#   shortest path #f032e6 magenta (loser #808080 grey)
+#   tie      #fabed4 pink (winner) / #aaffc3 mint (the one kept aside)
+#   order a  #9a6324 brown       order b  #000075 navy       order c  #469990 teal
+#   model    #808000 olive       model's collection #00ff00 (it must show NOWHERE)
+#   every loser of an order case is grey #808080: it appears in the stack, never on the line.
+
+# ---------------------------------------------------------------------------
+# The collections the cases need (kind `folder`: a `project` is never followed)
+# ---------------------------------------------------------------------------
+
+# Rank 2 - a collection that holds the object's four lines. BSS000NTCE.
+[[etape]]
+nom = "repli-2"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NTCE - trajectory" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NTCE - trajectory" },
+  { creneau = "members", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NTCE - frame" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NTCE - frame" },
+]
+set = { title = "Fallback 2 - collection (BSS000NTCE)", kind = "folder" }
+
+# Rank 2 bis - a collection of a collection. BSS000NTGS: the inner one holds the
+# lines, the outer one holds the inner one, and only the outer one is coloured.
+[[etape]]
+nom = "repli-2b-interne"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NTGS - trajectory" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NTGS - trajectory" },
+  { creneau = "members", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NTGS - frame" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NTGS - frame" },
+]
+set = { title = "Fallback 2 bis - inner collection (BSS000NTGS)", kind = "folder" }
+
+[[etape]]
+nom = "repli-2b-externe"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "repli-2b-interne", type = "DataobjectCollection" } ]
+set = { title = "Fallback 2 bis - outer collection (BSS000NTGS)", kind = "folder" }
+
+# Rank 4 - a collection that holds the interpretation. BSS000NTUM.
+[[etape]]
+nom = "repli-4"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NTUM - interpretation" } ]
+set = { title = "Fallback 4 - collection of the interpretation (BSS000NTUM)", kind = "folder" }
+
+# Rank 4 bis - a collection of a collection of the interpretation. BSS000NTUS.
+[[etape]]
+nom = "repli-4b-interne"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NTUS - interpretation" } ]
+set = { title = "Fallback 4 bis - inner collection (BSS000NTUS)", kind = "folder" }
+
+[[etape]]
+nom = "repli-4b-externe"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "repli-4b-interne", type = "DataobjectCollection" } ]
+set = { title = "Fallback 4 bis - outer collection (BSS000NTUS)", kind = "folder" }
+
+# Rank 5, by a collection - a collection that holds the FEATURE (one stage above
+# the interpretation). BSS000NUGK.
+[[etape]]
+nom = "repli-5"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "forages", type = "WellboreFeature", titre = "BSS000NUGK" } ]
+set = { title = "Fallback 5 - collection of the feature (BSS000NUGK)", kind = "folder" }
+
+# The shortest path wins - two coloured collections on the same lines, one
+# holding them (distance 1), the other holding that one (distance 2). The
+# nearer answers, and the further one is NOT a tie: it is further. BSS000NUKL.
+[[etape]]
+nom = "repli-court-interne"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUKL - trajectory" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUKL - trajectory" },
+  { creneau = "members", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NUKL - frame" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NUKL - frame" },
+]
+set = { title = "Fallback shortest - inner collection (BSS000NUKL)", kind = "folder" }
+
+[[etape]]
+nom = "repli-court-externe"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "repli-court-interne", type = "DataobjectCollection" } ]
+set = { title = "Fallback shortest - outer collection (BSS000NUKL)", kind = "folder" }
+
+# A tie - two coloured collections at the same distance. The first in the
+# document order wins, the other is kept aside and shown. The order is the
+# position of the reference in the association (`Dataobject[j]`): the first
+# collection lists the four lines at 0..3, the second lists the well's datum
+# first and the same four lines at 1..4, so the first wins for each of them -
+# by position, not by luck of an uuid. BSS000NUKM.
+[[etape]]
+nom = "repli-egalite-a"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUKM - trajectory" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUKM - trajectory" },
+  { creneau = "members", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NUKM - frame" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NUKM - frame" },
+]
+set = { title = "Fallback tie - first collection (BSS000NUKM)", kind = "folder" }
+
+[[etape]]
+nom = "repli-egalite-b"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "ReferencePointInALocalEngineeringCompoundCrs", titre = "BSS000NUKM - datum" },
+  { creneau = "members", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUKM - trajectory" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUKM - trajectory" },
+  { creneau = "members", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NUKM - frame" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NUKM - frame" },
+]
+set = { title = "Fallback tie - second collection (BSS000NUKM)", kind = "folder" }
+
+# Order a - the collection of the lines comes BEFORE the interpretation: the
+# lines are in a coloured collection and their interpretation is coloured too;
+# the collection wins (rank 2 before rank 3). BSS000NUSX.
+[[etape]]
+nom = "repli-ordre-1"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUSX - trajectory" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NUSX - trajectory" },
+  { creneau = "members", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NUSX - frame" },
+  { creneau = "members", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NUSX - frame" },
+]
+set = { title = "Fallback order a - collection of the lines (BSS000NUSX)", kind = "folder" }
+
+# Order b - the interpretation comes BEFORE the collection of the interpretation
+# (rank 3 before rank 4). BSS000NXAD.
+[[etape]]
+nom = "repli-ordre-2"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NXAD - interpretation" } ]
+set = { title = "Fallback order b - collection of the interpretation (BSS000NXAD)", kind = "folder" }
+
+# Order c - the collection of the interpretation comes BEFORE the feature
+# (rank 4 before rank 5). BSS000NYRW.
+[[etape]]
+nom = "repli-ordre-3"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NYRW - interpretation" } ]
+set = { title = "Fallback order c - collection of the interpretation (BSS000NYRW)", kind = "folder" }
+
+# The model's collection is not followed - a folder that holds the Eocene earth
+# model. "Eocene - structure" (a structural organisation the earth model names)
+# reaches that model at rank 6, and the colour of this folder, which is the
+# model's collection (the rank the house left out), is applied to nothing: the
+# walk says so and the object keeps the hue of its uuid.
+[[etape]]
+nom = "repli-modele-collection"
+operation = "collection"
+entrees = [ { creneau = "members", etape = "modele-eocene", type = "EarthModelInterpretation" } ]
+set = { title = "Fallback model - collection of the Eocene earth model", kind = "folder" }
+
+# ---------------------------------------------------------------------------
+# The set: one `GraphicalInformationSet`, one constant colour per carrier, in
+# the order of `colours` (23 targets, 23 colours)
+# ---------------------------------------------------------------------------
+
+[[etape]]
+nom = "couleurs-replis"
+operation = "graphical-information"
+entrees = [
+  # 1-4. Rank 1 - on the object itself: BSS000NSYW, its four lines.
+  { creneau = "targets", etape = "forages", type = "WellboreTrajectoryRepresentation", titre = "BSS000NSYW - trajectory" },
+  { creneau = "targets", etape = "forages-etendus", type = "WellboreTrajectoryRepresentation", titre = "BSS000NSYW - trajectory" },
+  { creneau = "targets", etape = "forages", type = "WellboreFrameRepresentation", titre = "BSS000NSYW - frame" },
+  { creneau = "targets", etape = "forages-etendus", type = "WellboreFrameRepresentation", titre = "BSS000NSYW - frame" },
+  # 5. Rank 2 - the collection of BSS000NTCE.
+  { creneau = "targets", etape = "repli-2", type = "DataobjectCollection" },
+  # 6. Rank 2 bis - the outer collection of BSS000NTGS.
+  { creneau = "targets", etape = "repli-2b-externe", type = "DataobjectCollection" },
+  # 7. Rank 3 - the interpretation of BSS000NTGZ.
+  { creneau = "targets", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NTGZ - interpretation" },
+  # 8. Rank 4 - the collection of the interpretation of BSS000NTUM.
+  { creneau = "targets", etape = "repli-4", type = "DataobjectCollection" },
+  # 9. Rank 4 bis - the outer collection of the interpretation of BSS000NTUS.
+  { creneau = "targets", etape = "repli-4b-externe", type = "DataobjectCollection" },
+  # 10. Rank 5 - the feature of BSS000NTWA.
+  { creneau = "targets", etape = "forages", type = "WellboreFeature", titre = "BSS000NTWA" },
+  # 11. Rank 5 - the collection of the feature of BSS000NUGK.
+  { creneau = "targets", etape = "repli-5", type = "DataobjectCollection" },
+  # 12-13. The shortest path - BSS000NUKL: the nearer (wins), then the further.
+  { creneau = "targets", etape = "repli-court-interne", type = "DataobjectCollection" },
+  { creneau = "targets", etape = "repli-court-externe", type = "DataobjectCollection" },
+  # 14-15. A tie - BSS000NUKM: the first collection (wins), then the second.
+  { creneau = "targets", etape = "repli-egalite-a", type = "DataobjectCollection" },
+  { creneau = "targets", etape = "repli-egalite-b", type = "DataobjectCollection" },
+  # 16-17. Order a - BSS000NUSX: the collection of the lines (wins), then the interpretation.
+  { creneau = "targets", etape = "repli-ordre-1", type = "DataobjectCollection" },
+  { creneau = "targets", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NUSX - interpretation" },
+  # 18-19. Order b - BSS000NXAD: the interpretation (wins), then its collection.
+  { creneau = "targets", etape = "forages", type = "WellboreInterpretation", titre = "BSS000NXAD - interpretation" },
+  { creneau = "targets", etape = "repli-ordre-2", type = "DataobjectCollection" },
+  # 20-21. Order c - BSS000NYRW: the collection of the interpretation (wins), then the feature.
+  { creneau = "targets", etape = "repli-ordre-3", type = "DataobjectCollection" },
+  { creneau = "targets", etape = "forages", type = "WellboreFeature", titre = "BSS000NYRW" },
+  # 22. Rank 6 - the earth model "Lutetia": the non-sealed framework of scenario B
+  #     reaches it by the structural organisation it represents (and the faulted
+  #     grid, which it interprets, takes it at rank 3).
+  { creneau = "targets", etape = "modele", type = "EarthModelInterpretation" },
+  # 23. The model's collection - applied to nothing (rank 7, left out).
+  { creneau = "targets", etape = "repli-modele-collection", type = "DataobjectCollection" },
+]
+set = { title = "Lutetia - fallback colours", colours = [
+  "#e6194b", "#e6194b", "#e6194b", "#e6194b",
+  "#f58231",
+  "#ffe119",
+  "#bfef45",
+  "#3cb44b",
+  "#42d4f4",
+  "#4363d8",
+  "#911eb4",
+  "#f032e6", "#808080",
+  "#fabed4", "#aaffc3",
+  "#9a6324", "#808080",
+  "#000075", "#808080",
+  "#469990", "#808080",
+  "#808000",
+  "#00ff00",
+] }
+
+# ---------------------------------------------------------------------------
+# A surface in two versions
+# ---------------------------------------------------------------------------
+
+# Why wait: add a copy of an object with a different version so that it can be
+# tested - and the rule it exercises: the short uri is accepted if there is no
+# conflict (or if the object has no version), with the version if there is a
+# conflict.
+#
+# The copied surface is the one the scene draws and that is exported to OBJ,
+# **H3 in triangles** (`h3-triangulee`): a resqml22
+# `TriangulatedSetRepresentation` that declares **no** `objectVersion`. The
+# original therefore keeps its short uri,
+# `eml:///resqml22.TriangulatedSetRepresentation(<uuid>)`, and the copy - same
+# uuid, same type, same content, `objectVersion` "2" - takes the form with its
+# version, `…(uuid=<uuid>,version='2')`. It is written by the one door that
+# adds a version (`EpcStore::put_as_new_version`): an ordinary `put` would
+# replace the original.
+#
+# **It is placed just before `coupe`**: the section reads the whole package
+# (`objects`, `every`) and the page, which selects by default everything the
+# package holds, cuts the copy too; the drawing versioned next to the model,
+# replayed from the example, therefore names it - and the `coupe` step refuses
+# a drawing that names an object the package does not hold yet. The project,
+# further down, gathers it with the rest.
+[[etape]]
+nom = "h3-triangulee-v2"
+operation = "new-version"
+entrees = [ { creneau = "object", etape = "h3-triangulee", type = "TriangulatedSetRepresentation" } ]
+set = { version = "2" }
+
+# The A-A' section. Motivation: to put it in Lutetia, create a polylineset (with
+# suitable interpretations and feature) to represent the profile line, an
+# activity instance and template for the computation of the profiles, and link
+# the SVG and PNG section images to the activity as a result. A `CulturalFeature`
+# of kind `section line` and its `GenericFeatureInterpretation`, the
+# `PolylineSetRepresentation` - patch 0 the trace, patch 1 the three cross
+# profiles - and a *part-address* `Attachment` per image, which names the
+# polyline; the `section-view` activity lists them all as outputs. **The trace
+# is read from the SVG's metadata**, never given again here: the line written is
+# the one that was drawn. The images are computed from this very package - the
+# variant without errors, so that every object it cut exists in both packages
+# (`donnees/profils/`, and the README of this folder gives the command);
+# at 35 m NGF, the elevation of the mean ground, like the extent. Each setting
+# of the section is a parameter of the template, read in the drawing and refused
+# if it contradicts it; the wells and surfaces cut are the `input`s of the
+# activity (`objects`, filled with the whole package) - hence the place of the
+# step, **after** the last own object and just before the project.
+[[etape]]
+nom = "coupe"
+operation = "section-view"
+entrees = [
+  { creneau = "svg", fichier = "donnees/profils/coupe-lutetia.svg" },
+  { creneau = "png", fichier = "donnees/profils/coupe-lutetia.png" },
+]
+set = { sourceEpsg = 2154, project = 2154, vertical = 5720, elevation = 35.0, title = "Lutetia - section A-A'" }
+
+# The `DataobjectCollection` "Lutetia", `Kind` = project: *« The RESQML
+# V2.2 Version allows to gather information in a given DataObjectCollection
+# which CollectionKind is a "Project" »* (TUG 2.2 draft §7 p. 66). Every
+# step that is played enters it whole; a step still pending is not there (a
+# recipe refuses to name one) and will be added here when it plays.
+# Everything each step wrote enters it: its objects, the activity template
+# it added, the grouping collections that `apply` writes next to a plan with
+# many objects, and its activity (a step named without `type` returns all
+# of this). `crates/energyml-build/tests/lutetia.rs` checks the project
+# against the whole package. Named gap: the workflow root and its template,
+# written after the last step, are not in it.
+[[etape]]
+nom = "projet"
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "repere-profondeur" },
+  { creneau = "members", etape = "repere-temps" },
+  { creneau = "members", etape = "repere-grille" },
+  { creneau = "members", etape = "bord" },
+  { creneau = "members", etape = "colonne" },
+  { creneau = "members", etape = "temps-forage" },
+  { creneau = "members", etape = "temps-exploitation" },
+  { creneau = "members", etape = "temps-mensuel" },
+  { creneau = "members", etape = "forages" },
+  { creneau = "members", etape = "puits-du-modele" },
+  { creneau = "members", etape = "modele" },
+  { creneau = "members", etape = "sol-collets" },
+  { creneau = "members", etape = "sol" },
+  { creneau = "members", etape = "dtm-pendage" },
+  { creneau = "members", etape = "dtm-azimut" },
+  { creneau = "members", etape = "dtm-pendage-carte" },
+  { creneau = "members", etape = "dtm-pendage-couleurs" },
+  { creneau = "members", etape = "gth-1" },
+  { creneau = "members", etape = "gth-2" },
+  { creneau = "members", etape = "gth-3" },
+  { creneau = "members", etape = "gth-3-st1" },
+  { creneau = "members", etape = "temperature-doublet" },
+  { creneau = "members", etape = "pression-doublet" },
+  { creneau = "members", etape = "witsml-doublet" },
+  { creneau = "members", etape = "witsml-forages" },
+  { creneau = "members", etape = "prodml-doublet" },
+  { creneau = "members", etape = "brgm" },
+  { creneau = "members", etape = "etude" },
+  { creneau = "members", etape = "logs-doublet" },
+  { creneau = "members", etape = "logs-doublet-h5" },
+  { creneau = "members", etape = "f1" },
+  { creneau = "members", etape = "f2" },
+  { creneau = "members", etape = "f3" },
+  { creneau = "members", etape = "f4" },
+  { creneau = "members", etape = "structure-a" },
+  { creneau = "members", etape = "structure-b" },
+  { creneau = "members", etape = "modele-eocene" },
+  { creneau = "members", etape = "pression-gth-1-annuelle" },
+  { creneau = "members", etape = "pression-gth-1-mensuelle" },
+  { creneau = "members", etape = "echantillon-gth-1" },
+  { creneau = "members", etape = "fibre-gth-3" },
+  { creneau = "members", etape = "test-injectivite-gth-2" },
+  { creneau = "members", etape = "reseau-doublet" },
+  { creneau = "members", etape = "cadre-b" },
+  # Played once the strata table was read (`passes-etages.csv`, re-read), and
+  # what waited on it: contacts, horizons, the grid and its properties.
+  { creneau = "members", etape = "etages" },
+  { creneau = "members", etape = "contacts" },
+  { creneau = "members", etape = "h4" },
+  { creneau = "members", etape = "h5" },
+  { creneau = "members", etape = "h6" },
+  { creneau = "members", etape = "h6-profondeur" },
+  { creneau = "members", etape = "h6-temps" },
+  { creneau = "members", etape = "h1-points" },
+  { creneau = "members", etape = "h1" },
+  { creneau = "members", etape = "h3-points" },
+  { creneau = "members", etape = "h3" },
+  { creneau = "members", etape = "h3-triangulee" },
+  { creneau = "members", etape = "export-h3" },
+  { creneau = "members", etape = "h7" },
+  { creneau = "members", etape = "forages-etendus" },
+  { creneau = "members", etape = "grille" },
+  { creneau = "members", etape = "pression-grille" },
+  { creneau = "members", etape = "temperature-grille" },
+  { creneau = "members", etape = "porosite-grille" },
+  { creneau = "members", etape = "ntg-grille" },
+  { creneau = "members", etape = "permeabilite-grille" },
+  { creneau = "members", etape = "pression-grille-serie" },
+  { creneau = "members", etape = "temperature-grille-serie" },
+  { creneau = "members", etape = "reservoir" },
+  { creneau = "members", etape = "gth-2-bloque" },
+  { creneau = "members", etape = "grille-locale" },
+  { creneau = "members", etape = "grille-faillee" },
+  { creneau = "members", etape = "gth-1-bloque" },
+  { creneau = "members", etape = "temperature-forages" },
+  { creneau = "members", etape = "pression-forages" },
+  { creneau = "members", etape = "h7-rejet" },
+  { creneau = "members", etape = "h6-rejet" },
+  { creneau = "members", etape = "pta-gth-2" },
+  { creneau = "members", etape = "export-grille" },
+  # The vertical wells' folder and the two `Attachment`s of the
+  # colours-and-parts base of the model.
+  { creneau = "members", etape = "puits-verticaux" },
+  { creneau = "members", etape = "tete-puits-verticaux" },
+  { creneau = "members", etape = "tete-gth-1" },
+  # The section A-A' - its feature, its lines and its two images.
+  { creneau = "members", etape = "coupe" },
+  { creneau = "members", etape = "h3-triangulee-v2" },
+  # A part is not an object and cannot be a member (`Dataobject` is a DOR):
+  # what these two bring is their activity and its template.
+  { creneau = "members", etape = "lisez-moi" },
+  { creneau = "members", etape = "export-emprise" },
+  # What the grids and the reservoir represent.
+  { creneau = "members", etape = "grille-represente" },
+  { creneau = "members", etape = "grille-locale-represente" },
+  { creneau = "members", etape = "reservoir-represente" },
+  # The colour fallback demo.
+  { creneau = "members", etape = "repli-2" },
+  { creneau = "members", etape = "repli-2b-interne" },
+  { creneau = "members", etape = "repli-2b-externe" },
+  { creneau = "members", etape = "repli-4" },
+  { creneau = "members", etape = "repli-4b-interne" },
+  { creneau = "members", etape = "repli-4b-externe" },
+  { creneau = "members", etape = "repli-5" },
+  { creneau = "members", etape = "repli-court-interne" },
+  { creneau = "members", etape = "repli-court-externe" },
+  { creneau = "members", etape = "repli-egalite-a" },
+  { creneau = "members", etape = "repli-egalite-b" },
+  { creneau = "members", etape = "repli-ordre-1" },
+  { creneau = "members", etape = "repli-ordre-2" },
+  { creneau = "members", etape = "repli-ordre-3" },
+  { creneau = "members", etape = "repli-modele-collection" },
+  { creneau = "members", etape = "couleurs-replis" },
+]
+set = { title = "Lutetia", kind = "project" }
+
+# ---------------------------------------------------------------------------
+# Step 13 - the `[ERROR]` model: the deliberate anomalies
+# ---------------------------------------------------------------------------
+#
+# To be placed **at the end of the recipe, after `projet`**: no clean step
+# follows, so no slot that a clean step leaves empty (`read::every`) can pick
+# up an `[ERROR]` object, and the project does not contain them.
+#
+# The model design: *deliberately wrong objects, each against a written rule,
+# to prove that the check guarding it fires*. **The `[ERROR]` objects are
+# leaves**: they may reference a clean object (F1, the top of the Lutetian,
+# the GTH-1 series that is copied), but no clean object references them.
+# Every title starts with `[ERROR]`, and the `[ERROR] Lutetia` folder
+# gathers them all.
+#
+# Each defect is **written by an ordinary operation, then stated in one
+# field** by `edit-object`: the field, the old value, the new one, in the
+# plan. The writers stay strict - `fault-from-sticks` still refuses
+# `IsListric` on a reverse fault, `collection` still computes
+# `HomogeneousDatatype` -, and the anomaly is one line of this recipe.
+#
+# What `energyml check` must find, **exactly**, and nothing else (0
+# errors; the E-nn are warnings until their severity is settled):
+#
+#   E-01  properties  abstract kind `force per length`  « [ERROR] GTH-9 - force per length »
+#   E-02  properties  abstract kind `property`          « [ERROR] GTH-9 - property »
+#   E-03  house/discrete-value-in-lookup                « [ERROR] GTH-9 - [ERROR] lithology »
+#   E-04  house/time-series-asset-resolves              « [ERROR] GTH-99 - wellhead pressure »
+#   E-06  trg/one-definitive-trajectory-per-wellbore    the Wellbore « [ERROR] GTH-9 »
+#   E-07  trg/is-listric-iff-normal                     « [ERROR] F9 - interpretation »
+#   E-08  trg/homogeneous-collection                    the collection « [ERROR] wells »
+#         trg/wellbore-interpretation-set-holds-wellbores  the earth model interpretation « [ERROR] Lutetia - deliberate anomalies »
+#   E-09  trg/contact-element-is-geological             the structural organization « [ERROR] Lutetia - structure »
+#
+# **E-05 is not written**: it is the unit -> quantity-class table rule,
+# which `check` cannot judge yet - `g/L` on a dimensionless kind would come
+# out as "not verified", not as a defect. Writing it now would pin a
+# silence.
+
+# The `[ERROR]` well (E-06, and the support of E-01…E-03): a vertical hole of
+# 60 m, planned, in the wells' frame, the ground read from the `sol` surface
+# as for the doublet. **`GTH-9`, and the E-04 series names `GTH-99`**: the two
+# defects were fighting over the name (a series naming `well(GTH-9)` would
+# stay silent if a well were called that); the title `[ERROR] GTH-9` does not
+# answer to the name `GTH-9` anyway, and `GTH-99` rules out any ambiguity.
+# Invented head and length, between GTH-1 and GTH-3.
+[[etape]]
+nom = "erreur-gth-9"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "well-from-plan"
+entrees = [ { creneau = "surface", etape = "sol", type = "Grid2dRepresentation" } ]
+set = { crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }, title = "[ERROR] GTH-9", headX = 651700.0, headY = 6861250.0, datumHeight = 3.0, datumKind = "kelly bushing", sections = ["hold to 60"], step = 5.0, maxDepth = 200.0 }
+
+# Its WITSML side: a `Well`, a `Wellbore`, a `Definitive` `Trajectory`
+# (surface to bottom, a single RESQML path).
+[[etape]]
+nom = "erreur-witsml-gth-9"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "witsml-wells"
+entrees = [
+  { creneau = "frames", etape = "erreur-gth-9", type = "WellboreFrameRepresentation" },
+  { creneau = "projected", etape = "forages", type = "ProjectedCrs" },
+]
+set = { existence = "planned", synthetic = true, country = "France", basin = "Paris Basin" }
+
+# E-06: a **second** `Definitive` `Trajectory` on the same `Wellbore` - the
+# copy of the first, under another uuid. WITSML TRG 2.1 §16.6 p. 350, on
+# `Trajectory.Definitive`: *« There can only be one trajectory per wellbore
+# with definitive=true »*. The finding is placed on the **Wellbore** (the
+# object of the rule), an `[ERROR]` object: no clean well receives one.
+[[etape]]
+nom = "erreur-trajectoire-bis"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "erreur-witsml-gth-9", type = "Trajectory" } ]
+set = { copy = "[ERROR] GTH-9 - trajectory, a second definitive one", fields = ['Citation.Description = "[ERROR] E-06 (docs/errors.md): a copy of the definitive trajectory of [ERROR] GTH-9, definitive too - WITSML TRG 2.1 §16.6 p. 350: there can only be one trajectory per wellbore with definitive=true."'] }
+
+# E-01, E-02, E-03: three properties on the frame of `[ERROR] GTH-9`, from
+# `donnees/erreurs/proprietes.csv` and its template. The first two are
+# placed on **abstract** kinds of the Energistics 2.3 dictionary -
+# `force per length` (e75d460c, `IsAbstract` true) and its root `property`
+# (a48c9c25) -: an abstract kind is a category, no value is put on it
+# (`property_kind::check`). The design first put E-01 on the GTH-1 frame; on
+# that of `[ERROR] GTH-9`, the property title carries `[ERROR]`, and nothing
+# changes about the rule. The third, discrete (`litho type`), writes its codes
+# as ranks of its table - sand 0, marl 1, chalk 2 -, and its column is called
+# "[ERROR] lithology" because that name is the title of the table.
+[[etape]]
+nom = "erreur-proprietes"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "properties-from-table"
+entrees = [
+  { creneau = "table", fichier = "donnees/erreurs/proprietes.csv" },
+  { creneau = "frames", etape = "erreur-gth-9", type = "WellboreFrameRepresentation" },
+]
+template = "donnees/erreurs/proprietes.template.json"
+
+# E-03: the lithology table receives a **numeric** key column, counted from
+# 1 - the confusion at stake ("the integer is the row rank" is our writing
+# convention, whereas the spec looks the value up in the key column). Code 0
+# (sand, two nodes) no longer has a row: common TRG 2.3 §9.1 p. 190,
+# *« Defines a key column which make the table a lookup table »*, and the
+# house reading `house/discrete-value-in-lookup` reports it. The design
+# targeted the table written by the `etages` step, which waits for its
+# re-reading: the table here is that of the `[ERROR]` property, titled
+# "[ERROR] lithology" by the name of its column (a title is not rewritten in
+# place: every reference to the table keeps a copy, which would become
+# stale). The key is an `identifier` (311dcaba), the kind given to keys.
+[[etape]]
+nom = "erreur-table-lithologie"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "erreur-proprietes", type = "ColumnBasedTable" } ]
+set = { fields = [
+  'KeyColumn = [{"Title": "code", "ValueCountPerRow": 1, "PropertyKind": {"$type": "eml23.DataObjectReference", "Uuid": "311dcaba-6512-4144-aa7c-79a9de19b4ab", "QualifiedType": "eml23.PropertyKind", "Title": "identifier"}, "Values": {"$type": "eml23.IntegerXmlArray", "CountPerValue": 1, "NullValue": -9999, "Values": [1, 2, 3]}}]',
+] }
+
+# E-04: a `TimeSeriesData` whose `asset identifier` resolves to nothing - the
+# wellhead pressure of GTH-1 (`prodml-doublet`), copied, its key naming
+# `well(GTH-99)`, which no `Well` of the package carries (Energistics
+# Identifier Specification v4.0 §6.3 p. 14 for the grammar). `Key[0]` is the
+# `asset identifier` key that `prodml-doublet` writes first.
+[[etape]]
+nom = "erreur-serie"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "prodml-doublet", type = "TimeSeriesData", titre = "GTH-1 - wellhead pressure" } ]
+set = { copy = "[ERROR] GTH-99 - wellhead pressure", fields = [
+  'Key[0]._ = "eml://lutetia.geosiris.com/well(GTH-99)/wellbore(01)/wellhead"',
+  'Citation.Description = "[ERROR] E-04 (docs/errors.md): a copy of the wellhead pressure of GTH-1 whose asset identifier names well(GTH-99), which no well of this package is."',
+] }
+
+# E-07: F9, written **normal and listric** by `fault-from-sticks` - which
+# would refuse `IsListric` on a reverse fault -, then stated **reverse**:
+# `IsListric` stays. Interpretations.xsd l. 659-662, TRG 2.2 §6.20 p. 188:
+# *« Must be present if the fault is normal. Must not be present if the fault
+# is not normal. »* Synthetic plane south of the extent, strike N75°E,
+# dip 60° towards 165°, from 20 to −100 m NGF.
+[[etape]]
+nom = "erreur-f9"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "fault-from-sticks"
+
+[etape.set]
+crs = { etape = "forages", type = "LocalEngineeringCompoundCrs" }
+title = "[ERROR] F9"
+geometry = "plane"
+trace = "651300 6860900 20; 651493.19 6860951.76 20"
+dip = 60.0
+dipAzimuth = 165.0
+verticalExtent = 120.0
+throw = ["normal"]
+listric = true
+sealed = false
+synthetic = true
+source = "synthetic - F9, the fault of the [ERROR] model (E-07); invented plane, from 20 to −100 m NGF"
+
+[[etape]]
+nom = "erreur-f9-inverse"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "erreur-f9", type = "FaultInterpretation" } ]
+set = { fields = [
+  'ThrowInterpretation[0].Throw = ["reverse"]',
+  'Citation.Description = "[ERROR] E-07 (docs/errors.md): a reverse fault that keeps IsListric - Interpretations.xsd l. 659-662, TRG 2.2 §6.20 p. 188: IsListric must not be present if the fault is not normal."',
+] }
+
+# The `[ERROR]` structural organization, which interprets the `[ERROR]` model
+# (by its title, the same object as the `erreur-modele` step writes) and
+# carries F9 and F1 - a reference to a clean object, which is allowed (the
+# leaves rule). The contact is written valid, between two interpretations;
+# E-09 comes next.
+[[etape]]
+nom = "erreur-structure"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "structural-organisation"
+entrees = [
+  { creneau = "boundaries", etape = "erreur-f9", type = "FaultInterpretation" },
+  { creneau = "boundaries", etape = "f1", type = "FaultInterpretation" },
+]
+set = { title = "[ERROR] Lutetia - structure", ordering = "age", modelTitle = "[ERROR] Lutetia - deliberate anomalies", contacts = ["[ERROR] F9 stops F1"] }
+
+# E-09: the subject of the contact becomes the **surface** of F9, a
+# representation - TRG 2.2 §6.9 p. 173: a contact links geological
+# interpretations or a boundary, not a geometry. The direct object stays F1,
+# an interpretation: a single finding. The design targeted the surface of H3,
+# which no step writes yet; the surface of F9 is the same fault. The
+# reference replaces what the `ContactElement` names and keeps its qualifier.
+[[etape]]
+nom = "erreur-contact"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "erreur-structure", type = "StructuralOrganizationInterpretation" } ]
+set = { reference = { etape = "erreur-f9", type = "TriangulatedSetRepresentation" }, referenceAt = "ContactInterpretation[0].Subject" }
+
+# "[ERROR] wells", which mixes the `WellboreInterpretation` of
+# `[ERROR] GTH-9` and a `HorizonInterpretation` (the top of the Lutetian,
+# clean). `collection` writes `HomogeneousDatatype` false on the collection
+# **and** on its association - which is what the members are. The association
+# set written alongside is half of the `[ERROR]` association sets (see
+# `erreur-dossier`).
+[[etape]]
+nom = "erreur-puits"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "erreur-gth-9", type = "WellboreInterpretation" },
+  { creneau = "members", etape = "modele-eocene", type = "HorizonInterpretation", titre = "Lutetian TOP" },
+]
+set = { title = "[ERROR] wells", kind = "folder" }
+
+# E-08, first finding: the collection says it is homogeneous. Collection.xsd
+# l. 66-70: *« If true all data objects in the collection are of the same
+# Energistics data type »*. The association keeps false: the second check
+# (`trg/homogeneous-association`) stays silent, and E-08 gives **two**
+# findings, not three.
+[[etape]]
+nom = "erreur-puits-homogene"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "edit-object"
+entrees = [ { creneau = "object", etape = "erreur-puits", type = "DataobjectCollection" } ]
+set = { fields = ['HomogeneousDatatype = true'] }
+
+# The `[ERROR]` `Model` and `EarthModelInterpretation` "[ERROR] Lutetia -
+# deliberate anomalies": `Structure` -> the `[ERROR]` structural organization,
+# `WellboreInterpretationSet` -> "[ERROR] wells". E-08, second finding, on the
+# earth model interpretation: TRG 2.2 §6.19 p. 187, *« the
+# DataobjectCollection must only contain WellboreInterpretation »*. The
+# page's model selector shows one more.
+[[etape]]
+nom = "erreur-modele"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "earth-model"
+entrees = [
+  { creneau = "structures", etape = "erreur-structure", type = "StructuralOrganizationInterpretation" },
+  { creneau = "wellboreSets", etape = "erreur-puits", type = "DataobjectCollection" },
+]
+set = { title = "[ERROR] Lutetia - deliberate anomalies", interpretationTitle = "[ERROR] Lutetia - deliberate anomalies" }
+
+# The "[ERROR] Lutetia" folder, `Kind` folder: **every** `[ERROR]` step enters
+# it whole, WITSML and PRODML included - a `Model` only reaches the geology.
+# Its association set and that of `erreur-puits` are the `[ERROR]` association
+# sets: `collection` writes one set per collection, so these are **two**
+# `[ERROR]` objects, never the project's association set, which is clean.
+# What a step returns without `type` also includes its activity and the
+# canonical template of its operation, as for the project: those do not
+# carry `[ERROR]` at the head of their title, and the workflow root names
+# these activities - the only reference from a clean object to the
+# `[ERROR]` one, that of provenance.
+[[etape]]
+nom = "erreur-dossier"
+groupe = "erreur"                # the `[ERROR]` model: `--without erreur` leaves it out
+operation = "collection"
+entrees = [
+  { creneau = "members", etape = "erreur-gth-9" },
+  { creneau = "members", etape = "erreur-witsml-gth-9" },
+  { creneau = "members", etape = "erreur-trajectoire-bis" },
+  { creneau = "members", etape = "erreur-proprietes" },
+  { creneau = "members", etape = "erreur-table-lithologie" },
+  { creneau = "members", etape = "erreur-serie" },
+  { creneau = "members", etape = "erreur-f9" },
+  { creneau = "members", etape = "erreur-f9-inverse" },
+  { creneau = "members", etape = "erreur-structure" },
+  { creneau = "members", etape = "erreur-contact" },
+  { creneau = "members", etape = "erreur-puits" },
+  { creneau = "members", etape = "erreur-puits-homogene" },
+  { creneau = "members", etape = "erreur-modele" },
+]
+set = { title = "[ERROR] Lutetia", kind = "folder" }

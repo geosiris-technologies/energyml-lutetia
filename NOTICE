@@ -1,0 +1,24 @@
+Lutetia
+Copyright 2026 Geosiris
+
+The following Energistics® products were used in the creation of this work: RESQML™
+Data Schema v2.2, Energistics common v2.3, WITSML™ Data Schema v2.1 and PRODML™ Data
+Schema v2.3 (the versions declared by the schemaVersion attribute of the objects of
+package/Lutetia.epc), and the Energistics PropertyKind dictionary v2.3. Energistics®,
+WITSML™, PRODML™ and RESQML™ are trademarks or registered trademarks of Energistics
+Consortium, Inc. All rights in the Energistics standards, or any portion thereof, which
+remain in this work remain with Energistics and are subject to the Energistics Product
+License Agreement (https://www.energistics.org/product-license-agreement). This work is
+not affiliated with or endorsed by Energistics or The Open Group.
+
+Data attribution
+----------------
+- BRGM Banque du sous-sol (BSS): borehole positions, elevations and logged intervals,
+  harvested on 23 and 24 September 2026. Source: BRGM. Licence Ouverte / Open Licence
+  2.0 (Etalab), https://infoterre.brgm.fr/page/conditions-dutilisation-donnees.
+  Modified for this example: see LICENSE-data and docs/sources.md.
+- BRGM GeolTs chart, https://data.geoscience.fr/ncl/GeolTs. Source: BRGM. CC BY 4.0.
+- Liberation Sans font, embedded in the section drawing: SIL Open Font License 1.1.
+
+Recipe, scripts and documentation: Apache License 2.0, see LICENSE.
+Data (the packages and the recipe inputs): CC BY 4.0, see LICENSE-data.

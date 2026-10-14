@@ -1,0 +1,28 @@
+# Lutetia is a reference package whose bytes are compared and replayed:
+# no line-ending conversion may ever touch a package, a recipe input that
+# becomes part of one, or a file compared against output.
+# Later lines win in .gitattributes: the protective rules come last.
+
+# Ordinary text, LF everywhere.
+*.md      text eol=lf
+*.py      text eol=lf
+*.toml    text eol=lf
+*.yml     text eol=lf
+*.json    text eol=lf
+*.cff     text eol=lf
+
+# Text compared byte for byte against what the tools print.
+docs/errors.expected.txt text eol=lf
+
+# Binary files.
+*.epc  binary
+*.h5   binary
+*.png  binary
+
+# The packages themselves (both variants): never converted, never diffed.
+package/**             binary
+package-with-errors/** binary
+
+# Recipe inputs whose bytes are written into the package as they are
+# (CSV, GeoJSON, SVG drawings...): no conversion, whatever the extension.
+recipe/donnees/** -text

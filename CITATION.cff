@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this dataset, please cite it as below."
+type: dataset
+title: "Lutetia: a synthetic multi-domain EnergyML reference model of the Paris Basin"
+abstract: >-
+  Lutetia is a synthetic EnergyML model (RESQML 2.2, EML 2.3, WITSML 2.1, PRODML 2.3)
+  of the Paris Basin around the Louvre, built by a replayable recipe with the energyml CLI.
+  It combines real boreholes of the BRGM subsurface databank with invented structures,
+  logs and production data. It is a test and teaching model, not a geological study.
+authors:
+  - name: "Geosiris"
+version: "1"
+# date-released: TODO set at release
+# doi: TODO assigned by Zenodo at the first release
+repository-code: "https://github.com/geosiris-technologies/energyml-lutetia"
+url: "https://www.geosiris.com"
+license: "CC-BY-4.0"  # the data (LICENSE-data); the recipe and the scripts are under Apache-2.0
+keywords:
+  - EnergyML
+  - RESQML
+  - WITSML
+  - PRODML
+  - Paris Basin
+  - synthetic data
+  - reference model

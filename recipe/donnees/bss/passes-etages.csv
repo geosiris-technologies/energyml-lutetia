@@ -1,0 +1,195 @@
+bss,longitude,latitude,epsg,sol_m,toit_m,mur_m,source_passe,id_passe_wfs,code_glu,formation,etage,source_etage,geolts_id,geolts_notation,geolts_libelle,lithologie_fiche,note,relu
+BSS000NSYW,2.3358,48.8516,4326,35,0,6,log-valide,7122648,GLU000AAAA,,,aucune,,,,,"le log validé ne donne aucun étage pour cette passe ; formation vide sur le log (code GLU000AAAA) ; lithologie imprimée : « Avant puits » ; la fiche (B) écrit QUATERNAIRE sur 0-8,6 m - non appliqué : (A) prime, et (A) ne date pas cette passe",oui
+BSS000NSYW,2.3358,48.8516,4326,35,6,8.6,log-valide,7122653,GLU000AAAA,,,aucune,,,,,"le log validé ne donne aucun étage pour cette passe ; formation vide sur le log (code GLU000AAAA) ; lithologie imprimée : « Avant puits » ; la fiche (B) écrit QUATERNAIRE sur 0-8,6 m - non appliqué : (A) prime, et (A) ne date pas cette passe",oui
+BSS000NSYW,2.3358,48.8516,4326,35,8.6,28.6,log-valide,7122656,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NSYW,2.3358,48.8516,4326,35,28.6,37.6,log-valide,7122650,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NSYW,2.3358,48.8516,4326,35,37.6,52.3,log-valide,7122652,GLU000ATND,Sables d'Auteuil,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NTCE,2.3358,48.8501,4326,37.55,0,3.8,log-valide,7900867,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTCE,2.3358,48.8501,4326,37.55,3.8,11,log-valide,7900865,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTCE,2.3358,48.8501,4326,37.55,11,20.4,log-valide,7900873,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTCE,2.3358,48.8501,4326,37.55,20.4,40.12,log-valide,7900870,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTCE,2.3358,48.8501,4326,37.55,40.12,53.1,log-valide,7900875,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,0,2.4,log-valide,6664766,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,2.4,4.4,log-valide,6664744,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,4.4,9.3,log-valide,6664718,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,9.3,9.65,log-valide,6664750,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,9.65,10.5,log-valide,6664712,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,10.5,10.6,log-valide,6664729,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,10.6,10.7,log-valide,6664741,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,10.7,10.8,log-valide,6664739,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,10.8,11.1,log-valide,6664752,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,11.1,11.3,log-valide,6664727,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,11.3,11.7,log-valide,6664762,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,11.7,11.8,log-valide,6664748,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,11.8,12,log-valide,6664764,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,12,12.8,log-valide,6664715,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,12.8,13,log-valide,6664768,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,13,13.9,log-valide,6664746,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,13.9,14.7,log-valide,6664732,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,14.7,14.85,log-valide,6664760,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,14.85,15.85,log-valide,6664721,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,15.85,16,log-valide,6664725,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,16,16.7,log-valide,6664735,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,16.7,16.9,log-valide,6664756,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,16.9,18,log-valide,6664709,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,18,18.4,log-valide,6664770,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,18.4,18.5,log-valide,6664754,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,18.5,19,log-valide,6664723,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,19,19.5,log-valide,6664737,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGS,2.3312,48.8542,4326,37.35,19.5,20,log-valide,6664758,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,0,2.1,log-valide,6615585,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,2.1,7.25,log-valide,6615580,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,7.25,9.4,log-valide,6615594,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,9.4,12.5,log-valide,6615583,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,12.5,14,log-valide,6615588,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,14,16.2,log-valide,6615597,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,16.2,17,log-valide,6615577,GLU000ATJG,Banc vert d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,17,19,log-valide,6615591,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUM,2.3306,48.8543,4326,37.7,19,20.1,log-valide,6615575,GLU000ATIV,Calcaire grossier moyen d'Ile-de-France,Lutétien moyen,log-valide,1257,e5b,Lutétien moyen,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,0,2.2,log-valide,8030905,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,2.2,2.9,log-valide,8030912,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,2.9,11.3,log-valide,8030901,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,11.3,15,log-valide,8030903,GLU000ATJG,Banc vert d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,15,23.25,log-valide,8030898,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,23.25,24.8,log-valide,8030907,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTUS,2.3338,48.8505,4326,35,24.8,26.7,log-valide,8030909,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,0,5,log-valide,8551971,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,5,6,log-valide,8551964,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,6,6.4,log-valide,8551957,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,6.4,15,log-valide,8551967,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,15,17.35,log-valide,8551961,GLU000ATJG,Banc vert d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,17.35,30.2,log-valide,8551969,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NUGK,2.3317,48.8521,4326,35.28,30.2,30.5,log-valide,8551959,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30.2 m),oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,0,3.9,log-valide,7031713,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,3.9,5,log-valide,7031721,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,5,5.7,log-valide,7031716,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,5.7,7,log-valide,7031707,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,7,7.35,log-valide,7031711,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,7.35,11.6,log-valide,7031705,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,11.6,14,log-valide,7031723,GLU000ATJG,Banc vert d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,14,26.8,log-valide,7031709,GLU000ATIV,Calcaire grossier moyen d'Ile-de-France,Lutétien moyen,log-valide,1257,e5b,Lutétien moyen,,,oui
+BSS000NUKL,2.3351,48.8533,4326,34.76,26.8,27,log-valide,7031718,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 26.8 m),oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,0,4.6,log-valide,7486670,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,4.6,5.6,log-valide,7486666,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,5.6,6.5,log-valide,7486677,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,6.5,14.6,log-valide,7486674,GLU000ATIV,Calcaire grossier supérieur d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,14.6,16.8,log-valide,7486668,GLU000ATJG,Banc vert d'Ile-de-France,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,16.8,29.7,log-valide,7486672,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NUKM,2.3339,48.8536,4326,35.51,29.7,30,log-valide,7486663,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 29.7 m),oui
+BSS000NUSX,2.3342,48.8554,4326,30,0,3,log-valide,7531668,GLU000AAAA,,,aucune,,,,,le log validé ne donne aucun étage pour cette passe ; formation vide sur le log (code GLU000AAAA) ; lithologie imprimée : « Sous sol » ; la fiche (B) ne date pas non plus 0-3 m (SOUS-SOL),oui
+BSS000NUSX,2.3342,48.8554,4326,30,3,7.5,log-valide,7531670,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NUSX,2.3342,48.8554,4326,30,7.5,24.5,log-valide,7531672,GLU000AAAA,,Lutétien,log-valide,1255,e5,Lutétien,,formation vide sur le log (code GLU000AAAA) ; lithologie imprimée : « Calcaire »,oui
+BSS000NZWP,2.3377,48.8549,4326,35,0,10.5,log-valide,7563073,GLU000AEKR,Fy-z,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NZWP,2.3377,48.8549,4326,35,10.5,16.5,log-valide,7563076,GLU000ATIT,Marnes et caillasses lutétiennes inférieures,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NSYT,2.3327,48.8524,4326,34,0,6.1,fiche,,,,,aucune,,,,"INCONNU, AVANT-PUITS","fiche : « IMPRECIS » - aucune division de GeolTs ne porte ce nom : refusé par son nom (lutetia.md §2.3, règle 2)",oui
+BSS000NSYT,2.3327,48.8524,4326,34,6.1,7.5,fiche,,,,QUATERNAIRE,fiche,1289,q,Quaternaire,"ALLUV, INCONNU",,oui
+BSS000NSYT,2.3327,48.8524,4326,34,7.5,19.2,fiche,,,,EOCENE-MOYEN,fiche,1254,e5-6,Eocène moyen,"MARNE, CALCAIRE",,oui
+BSS000NZNM,2.3398,48.8521,4326,35.12,0,4.3,fiche,,,,QUATERNAIRE,fiche,1289,q,Quaternaire,REMBLAIS,,oui
+BSS000NZNM,2.3398,48.8521,4326,35.12,4.3,5.9,fiche,,,,QUATERNAIRE,fiche,1289,q,Quaternaire,ALLUVIONS ANCIENNES,,oui
+BSS000NZNM,2.3398,48.8521,4326,35.12,5.9,10.7,fiche,,,,LUTETIEN-SUP,fiche,1258,e5c,Lutétien supérieur,CALCAIRE GROSSIER SUPERIEUR,,oui
+BSS000NZNM,2.3398,48.8521,4326,35.12,10.7,23.3,fiche,,,,LUTETIEN-INF,fiche,1256,e5a,Lutétien inférieur,CALCAIRE GROSSIER MOYEN,,oui
+BSS000NZNP,2.34,48.852,4326,34.5,0,4.72,fiche,,,,QUATERNAIRE,fiche,1289,q,Quaternaire,REMBLAIS,,oui
+BSS000NZNP,2.34,48.852,4326,34.5,4.72,5.72,fiche,,,,QUATERNAIRE,fiche,1289,q,Quaternaire,ALLUVIONS,,oui
+BSS000NZNP,2.34,48.852,4326,34.5,5.72,12.12,fiche,,,,LUTETIEN-SUP,fiche,1258,e5c,Lutétien supérieur,CALCAIRE GROSSIER SUPERIEUR,,oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,0,0.3,fiche,,,,,aucune,,,,Dalle beton RDC,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,0.3,3.49,fiche,,,,,aucune,,,,Vide Niveau -1,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,3.49,3.7,fiche,,,,,aucune,,,,Dalle beton N-1,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,3.7,6,fiche,,,,,aucune,,,,Remblai calcaire et sable siliceux,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,6,7.5,fiche,,,,,aucune,,,,Caillasses et petits bancs de calcaire,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,7.5,11,fiche,,,,,aucune,,,,"Marnes et caillasses du Lutetien, Marnes beiges,blanchatres petits bancs de calcaire gris et dur",fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,11,12.8,fiche,,,,,aucune,,,,Bancs decimetriques de marnes et calcaires en alternance Lutetien,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,12.8,20,fiche,,,,,aucune,,,,Calcaire grossier beige Lutetien,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,20,21,fiche,,,,,aucune,,,,Niveau marno-calcaire blanc Lutetien,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,21,28,fiche,,,,,aucune,,,,Calcaire gris de plus en plus fonce en profondeur Lutetien,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,28,28.8,fiche,,,,,aucune,,,,Calcaire dur ¿ glauconie Lutetien,fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS000NVHN,2.3329,48.8543,4326,32.5,28.8,32.2,fiche,,,,,aucune,,,,"Calcaire greseux avec pigments de glauconie, plus tendre Base Lutetien ou toit de l'Ypresien",fiche sans stratigraphie codée ; texte libre non lu (Q-31),oui
+BSS003CIKC,2.3305,48.8548,4326,37,0,3,fiche,,,,,aucune,,,,SOUS-SOL 1,la fiche ne donne aucun étage pour ce niveau,oui
+BSS003CIKC,2.3305,48.8548,4326,37,3,12,fiche,,,,,aucune,,,,SABLE ET GRAVIERS (ALLUVIONS),la fiche ne donne aucun étage pour ce niveau,oui
+BSS003CIKC,2.3305,48.8548,4326,37,12,14,fiche,,,,LUTETIEN,fiche,1255,e5,Lutétien,MARNES ET CALCAIRES BLANCHÂTRE (MARNES ET CAILLASSES DU LUTETIEN),,oui
+BSS003CIKC,2.3305,48.8548,4326,37,14,39,fiche,,,,LUTETIEN,fiche,1255,e5,Lutétien,CALCAIRE GRIS (CALCAIRE GROSSIER DU LUTETIEN),,oui
+BSS003CIKC,2.3305,48.8548,4326,37,39,40.3,fiche,,,,LUTETIEN,fiche,1255,e5,Lutétien,CALCAIRE SABLEUX VERDÂTRE (GLAUCONIE DU LUTETIEN),,oui
+BSS003CIKW,2.3302,48.855,4326,37,0,3,fiche,,,,,aucune,,,,SOUS-SOL 1,la fiche ne donne aucun étage pour ce niveau,oui
+BSS003CIKW,2.3302,48.855,4326,37,3,12,fiche,,,,,aucune,,,,SABLE ET GRAVIERS (ALLUVIONS),la fiche ne donne aucun étage pour ce niveau,oui
+BSS003CIKW,2.3302,48.855,4326,37,12,14,fiche,,,,LUTETIEN,fiche,1255,e5,Lutétien,MARNES ET CALCAIRES BLANCHÂTRE (MARNES ET CAILLASSES DU LUTETIEN),,oui
+BSS003CIKW,2.3302,48.855,4326,37,14,39,fiche,,,,LUTETIEN,fiche,1255,e5,Lutétien,CALCAIRE GRIS (CALCAIRE GROSSIER DU LUTETIEN),,oui
+BSS003CIKW,2.3302,48.855,4326,37,39,40.3,fiche,,,,LUTETIEN,fiche,1255,e5,Lutétien,CALCAIRE SABLEUX VERDÂTRE (GLAUCONIE DU LUTETIEN),,oui
+BSS000NXAD,2.3387,48.8619,4326,34.9,0,8,log-valide,6794317,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NXAD,2.3387,48.8619,4326,34.9,8,19.56,log-valide,6794319,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NXAD,2.3387,48.8619,4326,34.9,19.56,23.7,log-valide,6794327,GLU000AAAA,,Lutétien,log-valide,1255,e5,Lutétien,,formation vide sur le log (code GLU000AAAA) ; lithologie imprimée : « Ensemble indifférencié comprenant de haut en bas les marnes et caillasses et les calcaires grossiers »,oui
+BSS000NXAD,2.3387,48.8619,4326,34.9,23.7,53.96,log-valide,6794330,GLU000AAAA,,Yprésien,log-valide,1251,e4,Yprésien,,formation vide sur le log (code GLU000AAAA) ; lithologie imprimée : « Sable et argile »,oui
+BSS000NXAD,2.3387,48.8619,4326,34.9,53.96,63.3,log-valide,6794324,GLU000ATRI,Marnes de Meudon,Sélandien,log-valide,1247,e2,Sélandien,,,oui
+BSS000NXAD,2.3387,48.8619,4326,34.9,63.3,150.7,log-valide,6794321,GLU000ATVX,Craie à silex,Campanien,log-valide,1234,c5,Campanien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,0,4,log-valide,8589350,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,4,6.8,log-valide,8589375,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,6.8,7.6,log-valide,8589386,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,7.6,7.8,log-valide,8589356,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,7.8,9,log-valide,8589396,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,9,9.6,log-valide,8589398,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,9.6,21,log-valide,8589363,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,21,43.2,log-valide,8589352,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,43.2,45.4,log-valide,8589400,GLU000ATLY,Sables du Soissonnais (terme de sondeur),Cuisien,log-valide,2174,e4b,Cuisien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,45.4,49,log-valide,8589369,GLU000ATLY,Sables du Soissonnais (terme de sondeur),Cuisien,log-valide,2174,e4b,Cuisien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,49,50.8,log-valide,8589388,GLU000ATLY,Sables du Soissonnais (terme de sondeur),Cuisien,log-valide,2174,e4b,Cuisien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,50.8,53.4,log-valide,8589384,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,53.4,55.6,log-valide,8589371,GLU000ATND,Sables d'Auteuil,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,55.6,60.4,log-valide,8589402,GLU000ATND,Sables d'Auteuil,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,60.4,61.2,log-valide,8589360,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,61.2,61.7,log-valide,8589379,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,61.7,62.3,log-valide,8589358,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,62.3,64,log-valide,8589394,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,64,66.8,log-valide,8589354,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,66.8,67.2,log-valide,8589381,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,67.2,75.8,log-valide,8589365,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,75.8,76.2,log-valide,8589377,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,76.2,77.2,log-valide,8589392,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,77.2,77.8,log-valide,8589390,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,77.8,87.3,log-valide,8589373,GLU000ATRI,Marnes de Meudon,Sélandien,log-valide,1247,e2,Sélandien,,,oui
+BSS000NYRW,2.3437,48.8501,4326,39,87.3,135,log-valide,8589367,GLU000ATVX,Craie à silex,Campanien,log-valide,1234,c5,Campanien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,0,3.8,log-valide,8382112,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,3.8,7,log-valide,8382118,GLU000AEKR,Fy-z,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,7,10.4,log-valide,8382128,GLU000ATIN,Marnes et caillasses lutétiennes,Lutétien supérieur,log-valide,1258,e5c,Lutétien supérieur,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,10.4,28.5,log-valide,8382108,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,28.5,37.6,log-valide,8382110,GLU000ATLW,Sables de Cuise,Cuisien,log-valide,2174,e4b,Cuisien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,37.6,41.5,log-valide,8382121,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,41.5,50,log-valide,8382123,GLU000ATND,Sables d'Auteuil,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,50,65.6,log-valide,8382125,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,65.6,72,log-valide,8382115,GLU000ATRI,Marnes de Meudon,Sélandien,log-valide,1247,e2,Sélandien,,,oui
+BSS000NTGZ,2.3276,48.8592,4326,27.28,72,78.65,log-valide,8382105,GLU000ATVX,Craie à silex,Campanien,log-valide,1234,c5,Campanien,,mur sous la longueur déclarée du forage (boreholeLength 78.6 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,0,1,log-valide,7373576,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,1,8,log-valide,7373596,GLU000AAVG,Remblais,Holocène,log-valide,1326,_z,Holocène,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,8,9,log-valide,7373580,GLU000BIOG,Fy-Seine,Pléistocène supérieur,log-valide,1316,q3,Pléistocène supérieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,9,10,log-valide,7373586,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,10,10.2,log-valide,7373604,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,10.2,10.4,log-valide,7373543,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,10.4,11.7,log-valide,7373600,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,11.7,11.9,log-valide,7373549,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,11.9,12.55,log-valide,7373545,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,12.55,14.6,log-valide,7373614,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,14.6,16.6,log-valide,7373610,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,16.6,17,log-valide,7373568,GLU000ATIV,Calcaire grossier s.l. d'Ile-de-France,Lutétien,log-valide,1255,e5,Lutétien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,17,19.7,log-valide,7373539,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,19.7,20.2,log-valide,7373578,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,20.2,20.75,log-valide,7373584,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,20.75,23.65,log-valide,7373582,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,23.65,23.85,log-valide,7373612,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,23.85,24.5,log-valide,7373606,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,24.5,24.7,log-valide,7373592,GLU000ATJT,Calcaire et sables à Nummulites laevigatus,Lutétien inférieur,log-valide,1256,e5a,Lutétien inférieur,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,24.7,25.45,log-valide,7373574,GLU000ATLW,Sables de Cuise,Cuisien,log-valide,2174,e4b,Cuisien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,25.45,26.8,log-valide,7373572,GLU000ATLW,Sables de Cuise,Cuisien,log-valide,2174,e4b,Cuisien,,,oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,26.8,34,log-valide,7373547,GLU000ATLY,Sables du Soissonnais (terme de sondeur),Cuisien,log-valide,2174,e4b,Cuisien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,34,34.7,log-valide,7373563,GLU000ATLY,Sables du Soissonnais (terme de sondeur),Cuisien,log-valide,2174,e4b,Cuisien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,34.7,35.2,log-valide,7373557,GLU000ATLY,Sables du Soissonnais (terme de sondeur),Cuisien,log-valide,2174,e4b,Cuisien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,35.2,35.8,log-valide,7373541,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,35.8,36.8,log-valide,7373561,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,36.8,38.8,log-valide,7373551,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,38.8,39.8,log-valide,7373570,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,39.8,40.5,log-valide,7373608,GLU000ATMW,Fausses glaises du Vexin,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,40.5,45.3,log-valide,7373555,GLU000ATND,Sables d'Auteuil,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,45.3,48,log-valide,7373590,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,48,49,log-valide,7373559,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,49,49.7,log-valide,7373553,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,49.7,54,log-valide,7373598,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,54,57,log-valide,7373588,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,57,58,log-valide,7373602,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,58,59.3,log-valide,7373594,GLU000ATNX,Argile plastique,Sparnacien,log-valide,2173,e4a,Sparnacien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui
+BSS000NTWA,2.3354,48.8613,4326,33.83,59.3,60,log-valide,7373566,GLU000ATRI,Marnes de Meudon,Sélandien,log-valide,1247,e2,Sélandien,,mur sous la longueur déclarée du forage (boreholeLength 30 m),oui

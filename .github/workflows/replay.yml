@@ -1,0 +1,79 @@
+name: replay
+# Replays the recipe with the PUBLISHED energyml CLI from the inputs of this repository,
+# and compares with the committed packages. Then fetches the boreholes again from the
+# public BRGM API and REPORTS (job summary, a notice) whether the BRGM now answers
+# differently from the copy in recipe/donnees/bss/: that says the source moved, not that
+# the model is wrong, so it does not fail the job.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * 1"   # weekly: notices when the BRGM API answers differently
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the CLI version
+        id: v
+        run: echo "version=$(head -n1 recipe/energyml-version | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install the published energyml CLI
+        # The recipe needs the `hdf5` feature, over the system libhdf5 (as in the CI of
+        # energyml-rust).
+        run: |
+          sudo apt-get update && sudo apt-get install -y libhdf5-dev pkg-config
+          cargo install energyml-cli --version "${{ steps.v.outputs.version }}" --features hdf5 --locked
+
+      - name: The BSS inputs are in the repository
+        run: test -f recipe/donnees/bss/forages.geojson && test -f recipe/donnees/bss/passes-etages.csv
+
+      - name: Read where the committed packages were written
+        id: stamp
+        run: echo "platform=$(head -n1 written-on 2>/dev/null | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
+
+      # One script for both variants, the same one a maintainer runs (README): it
+      # writes package/, package-with-errors/ and written-on in place.
+      - name: Replay both variants
+        run: python scripts/replay.py
+
+      # The packages are compared byte for byte only on the platform that wrote them:
+      # elsewhere the maths library may move the last bits of a float (README, the
+      # `written-on` contract), and a difference would say nothing.
+      - name: Compare with the committed packages, and report
+        run: |
+          if [ "${{ steps.stamp.outputs.platform }}" != "linux" ]; then
+            echo "::notice::the committed packages were written on '${{ steps.stamp.outputs.platform }}': not comparable byte for byte on linux"
+            echo "not compared: packages written on '${{ steps.stamp.outputs.platform }}'" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if git diff --quiet -- package package-with-errors written-on; then
+            echo "identical: the replay gives the committed packages" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::the replay differs from the committed packages (the BRGM API may now answer differently from the build day)"
+            git diff --stat -- package package-with-errors written-on >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      # Informative only: the API answers with what the BRGM holds today.
+      - name: Does the BRGM API still answer what recipe/donnees/bss/forages.geojson holds?
+        if: always()
+        continue-on-error: true
+        run: |
+          energyml fetch brgm-bss boreholes --area recipe/donnees/emprise.geojson --where codeSpace=BRGM --out fresh.geojson
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          kept = {f["id"]: f for f in json.load(open("recipe/donnees/bss/forages.geojson"))["features"]}
+          fresh = {f["id"]: f for f in json.load(open("fresh.geojson"))["features"]}
+          gone = sorted(k for k in kept if k not in fresh)
+          moved = sorted(k for k in kept if k in fresh and fresh[k] != kept[k])
+          print(f"BRGM API today: {len(fresh)} boreholes in the area; of the {len(kept)} kept, "
+                f"{len(gone)} no longer returned, {len(moved)} with other values")
+          if gone or moved:
+              print("::notice::the BRGM API answers differently from recipe/donnees/bss/forages.geojson")
+          EOF

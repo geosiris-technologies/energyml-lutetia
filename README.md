@@ -88,7 +88,7 @@ It decides how a replay is compared with the committed packages. Each platform's
 
 ## Cite
 
-Use [CITATION.cff](CITATION.cff) (GitHub shows a "Cite this repository" button). A Zenodo DOI will be added with the first release.
+Use [CITATION.cff](CITATION.cff) (GitHub shows a "Cite this repository" button). Its Zenodo DOI is [10.5281/zenodo.23730911](https://doi.org/10.5281/zenodo.23730911) for every version, and [10.5281/zenodo.23730912](https://doi.org/10.5281/zenodo.23730912) for version 1.0.0.
 
 ## Links
 

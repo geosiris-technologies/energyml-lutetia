@@ -9,8 +9,8 @@ abstract: >-
   logs and production data. It is a test and teaching model, not a geological study.
 authors:
   - name: "Geosiris"
-version: "1"
-# date-released: TODO set at release
+version: "1.0.0"
+date-released: "2026-10-28"
 # doi: TODO assigned by Zenodo at the first release
 repository-code: "https://github.com/geosiris-technologies/energyml-lutetia"
 url: "https://www.geosiris.com"
